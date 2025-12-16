@@ -14,8 +14,10 @@ app/
 │   └── page.tsx               # 루틴 진행 화면 (/routine)
 ├── emotion/
 │   └── page.tsx               # 감정 변화 기록 화면 (/emotion)
-└── summary/
-    └── page.tsx               # 결과 요약 화면 (/summary)
+├── summary/
+│   └── page.tsx               # 결과 요약 화면 (/summary)
+└── thank-you/
+    └── page.tsx               # 감사 화면 (/thank-you)
 ```
 
 ### 1.2 라우트 매핑
@@ -27,10 +29,11 @@ app/
 | 루틴 진행 화면 | `/routine` | 명상 + 스킨케어 자동 진행 |
 | 감정 변화 기록 화면 | `/emotion` | 루틴 후 감정 상태 기록 |
 | 결과 요약 화면 | `/summary` | 루틴 효과 요약 및 피드백 |
+| 감사 화면 | `/thank-you` | 루틴 완료 감사 메시지 |
 
 ### 1.3 네비게이션 플로우
 ```
-/ → /setup → /voice-guide → /routine → /emotion → /summary → /
+/ → /setup → /voice-guide → /routine → /emotion → /summary → /thank-you → /
 ```
 
 ---

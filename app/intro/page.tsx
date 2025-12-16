@@ -1,13 +1,15 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
 
 export default function IntroPage() {
+  const router = useRouter()
+
   const handleStart = () => {
-    // TODO: /setup 또는 /routine/setup 라우팅 연결
-    console.log('루틴 시작하기 클릭')
+    router.push('/routine/setup')
   }
 
   return (

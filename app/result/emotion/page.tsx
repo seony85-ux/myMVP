@@ -1,12 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
 import EmotionSelector from '@/components/EmotionSelector'
 
 export default function AfterEmotionPage() {
+  const router = useRouter()
+
   // 로컬 상태 관리
   const [afterEmotion, setAfterEmotion] = useState<number | null>(null)
   const [submitted, setSubmitted] = useState(false)
@@ -24,11 +27,7 @@ export default function AfterEmotionPage() {
     }
 
     // TODO: 전역 상태에 저장
-    // TODO: 결과 요약 화면(/result/summary)으로 라우팅
-    console.log('감정 기록:', {
-      beforeEmotion,
-      afterEmotion,
-    })
+    router.push('/result/summary')
   }
 
   const shouldShowError = submitted && afterEmotion === null

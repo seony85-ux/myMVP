@@ -1,21 +1,21 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
 import Toggle from '@/components/Toggle'
 
 export default function VoiceGuidePage() {
+  const router = useRouter()
+
   // 로컬 상태 관리
   const [voiceGuideEnabled, setVoiceGuideEnabled] = useState<boolean>(true) // 기본값: On (권장)
 
   const handleStart = () => {
     // TODO: 전역 상태에 저장
-    // TODO: 루틴 진행 화면(/routine)으로 라우팅
-    console.log('루틴 시작:', {
-      voiceGuideEnabled,
-    })
+    router.push('/routine/play')
   }
 
   return (

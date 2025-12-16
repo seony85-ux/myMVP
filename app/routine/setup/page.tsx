@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import EmotionSelector from '@/components/EmotionSelector'
 import BGMCardList from '@/components/BGMCardList'
 import SkincareStepSelector from '@/components/SkincareStepSelector'
@@ -19,6 +20,8 @@ const mockBGMs = [
 ]
 
 export default function RoutineSetupPage() {
+  const router = useRouter()
+
   // 로컬 상태 관리
   const [emotion, setEmotion] = useState<number | null>(null)
   const [bgmId, setBgmId] = useState<string | null>(null)
@@ -35,14 +38,13 @@ export default function RoutineSetupPage() {
   }
 
   const handleNext = () => {
-    setSubmitted(true)
+    if (!isNextButtonEnabled) {
+      setSubmitted(true)
+      return
+    }
+
     // TODO: 전역 상태에 저장
-    // TODO: 다음 화면(/voice-guide)으로 라우팅
-    console.log('선택된 설정:', {
-      emotion,
-      bgmId,
-      selectedSteps,
-    })
+    router.push('/routine/voice')
   }
 
   const shouldShowStepError =

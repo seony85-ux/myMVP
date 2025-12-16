@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
@@ -11,6 +12,10 @@ import SectionHeader from '@/components/SectionHeader'
 import SectionBlock from '@/components/SectionBlock'
 
 export default function SummaryPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const isAborted = searchParams.get('aborted') === '1'
+
   // 로컬 상태 관리
   const [satisfaction, setSatisfaction] = useState<number | null>(null)
   const [reuseIntention, setReuseIntention] = useState<boolean | null>(null)
@@ -24,6 +29,14 @@ export default function SummaryPage() {
   const isCompleteButtonEnabled =
     satisfaction !== null && reuseIntention !== null
 
+  useEffect(() => {
+    // TODO: aborted 상태에 따라 UI를 다르게 표시하거나 처리
+    if (isAborted) {
+      // 중단된 세션 처리
+      console.log('루틴이 중단되었습니다')
+    }
+  }, [isAborted])
+
   const handleComplete = () => {
     if (!satisfaction || reuseIntention === null) {
       setSubmitted(true)
@@ -32,13 +45,7 @@ export default function SummaryPage() {
 
     // TODO: 전역 상태에 저장
     // TODO: 세션 데이터 저장
-    // TODO: 인트로 화면(/)으로 라우팅
-    console.log('결과 저장:', {
-      beforeEmotion,
-      afterEmotion,
-      satisfaction,
-      reuseIntention,
-    })
+    router.push('/thank-you')
   }
 
   const shouldShowSatisfactionError = submitted && satisfaction === null

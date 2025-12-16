@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
@@ -9,6 +10,12 @@ import MeditationText from '@/components/MeditationText'
 import ProgressIndicator from '@/components/ProgressIndicator'
 
 export default function RoutinePlayPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // 개발 모드 확인: NODE_ENV가 production이 아니거나 ?dev=1 쿼리 파라미터가 있을 때
+  const isDevMode = process.env.NODE_ENV !== 'production' || searchParams.get('dev') === '1'
+
   // Mock 상태 (UI 목업용)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [currentPhraseText, setCurrentPhraseText] = useState(
@@ -22,9 +29,26 @@ export default function RoutinePlayPage() {
 
   const handleStop = () => {
     // TODO: 확인 다이얼로그 표시
-    // TODO: 루틴 중단 처리
-    console.log('루틴 중단')
+    // TODO: 루틴 중단 처리 (세션 상태를 aborted로 저장)
+    // 중단 시 Summary 화면으로 이동 (aborted 파라미터 포함)
+    router.push('/result/summary?aborted=1')
   }
+
+  // 개발용 핸들러
+  const handleDevComplete = () => {
+    router.push('/result/emotion')
+  }
+
+  const handleDevAbort = () => {
+    router.push('/result/summary?aborted=1')
+  }
+
+  // TODO: 모든 단계 완료 시 자동으로 /result/emotion으로 이동
+  // useEffect(() => {
+  //   if (모든 단계 완료) {
+  //     router.push('/result/emotion')
+  //   }
+  // }, [completedSteps])
 
   return (
     <AppLayout>
@@ -60,6 +84,28 @@ export default function RoutinePlayPage() {
             중단하기
           </Button>
         </CTAContainer>
+
+        {/* 개발용 컨트롤 (프로덕션에서는 숨김) */}
+        {isDevMode && (
+          <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
+            <Button
+              onClick={handleDevComplete}
+              variant="secondary"
+              size="sm"
+              className="text-xs opacity-70 hover:opacity-100"
+            >
+              DEV: 루틴 완료
+            </Button>
+            <Button
+              onClick={handleDevAbort}
+              variant="secondary"
+              size="sm"
+              className="text-xs opacity-70 hover:opacity-100"
+            >
+              DEV: 중단
+            </Button>
+          </div>
+        )}
       </div>
     </AppLayout>
   )
