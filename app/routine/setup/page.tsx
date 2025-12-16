@@ -50,13 +50,14 @@ export default function RoutineSetupPage() {
 
   return (
     <AppLayout>
-      {/* 상단 영역: 화면 제목 */}
-      <div className="px-6 pt-8 pb-6 border-b-2 border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-900">오늘의 루틴 설정</h1>
-      </div>
+      <div className="flex flex-col min-h-[100svh]">
+        {/* 상단 영역: 화면 제목 */}
+        <div className="px-6 pt-8 pb-6 border-b-2 border-gray-200">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">오늘의 루틴 설정</h1>
+        </div>
 
-      {/* 스크롤 가능한 콘텐츠 영역 (CTA 높이만큼 여백 추가) */}
-      <div className="px-6 py-6 space-y-8 pb-32">
+        {/* 스크롤 가능한 콘텐츠 영역 (CTA 높이만큼 여백 추가) */}
+        <div className="px-6 py-6 space-y-8 pb-32">
         {/* 섹션 1: 감정 선택 */}
         <SectionBlock>
           <SectionHeader title="지금 기분은 어떤가요?" />
@@ -83,15 +84,15 @@ export default function RoutineSetupPage() {
             />
           </div>
           {shouldShowStepError && (
-            <p className="text-sm text-red-600 mt-2">
+            <p className="text-center text-sm text-red-600 mt-4">
               스킨케어 단계를 최소 1개 이상 선택해주세요
             </p>
           )}
         </SectionBlock>
-      </div>
+        </div>
 
-      {/* 하단 고정 버튼 영역 */}
-      <CTAContainer>
+        {/* 하단 고정 버튼 영역 */}
+        <CTAContainer>
         <Button
           onClick={handleNext}
           disabled={!isNextButtonEnabled}
@@ -101,7 +102,8 @@ export default function RoutineSetupPage() {
         >
           다음
         </Button>
-      </CTAContainer>
+        </CTAContainer>
+      </div>
     </AppLayout>
   )
 }
