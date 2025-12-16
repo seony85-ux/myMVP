@@ -1,0 +1,4 @@
+# 이미지 파일을 이 폴더에 저장하세요
+# Next.js에서는 /images/ 경로로 접근 가능합니다
+# 예: <img src="/images/logo.png" alt="logo" />
+
