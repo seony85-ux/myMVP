@@ -4,6 +4,7 @@ interface BGMCardProps {
   id: string
   name: string
   description: string
+  imageUrl?: string
   selected: boolean
   onSelect: (id: string | null) => void
 }
@@ -12,6 +13,7 @@ export default function BGMCard({
   id,
   name,
   description,
+  imageUrl,
   selected,
   onSelect,
 }: BGMCardProps) {
@@ -31,9 +33,19 @@ export default function BGMCard({
       `}
       aria-label={`BGM 선택: ${name}`}
     >
-      {/* 이미지 자리 (추후 삽입) */}
-      <div className="h-24 bg-gray-100 border-b border-gray-200 flex items-center justify-center text-gray-400 text-sm">
-        이미지 영역
+      {/* 이미지 영역 (1:1 비율) */}
+      <div className="w-full aspect-square bg-gray-100 border-b border-gray-200 overflow-hidden">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+            이미지 없음
+          </div>
+        )}
       </div>
 
       <div className="p-4 flex items-center justify-between">

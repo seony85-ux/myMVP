@@ -6,6 +6,7 @@ interface BGM {
   id: string
   name: string
   description: string
+  imageUrl?: string
 }
 
 interface BGMCardListProps {
@@ -33,6 +34,7 @@ export default function BGMCardList({
             id={bgm.id}
             name={bgm.name}
             description={bgm.description}
+            imageUrl={bgm.imageUrl}
             selected={selectedId === bgm.id}
             onSelect={onSelect}
           />

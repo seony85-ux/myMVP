@@ -13,10 +13,10 @@ import CTAContainer from '@/components/CTAContainer'
 
 // 임시 BGM 데이터 (나중에 API/전역 상태로 대체)
 const mockBGMs = [
-  { id: 'bgm1', name: '자연의 소리', description: '숲속 새소리와 물소리' },
-  { id: 'bgm2', name: '명상 음악', description: '차분한 피아노 선율' },
-  { id: 'bgm3', name: '바다의 파도', description: '평온한 파도 소리' },
-  { id: 'none', name: '없음', description: '배경음 없이 진행' },
+  { id: 'bgm1', name: '자연의 소리', description: '숲속 새소리와 물소리', imageUrl: '/images/forest.png' },
+  { id: 'bgm2', name: '명상 음악', description: '차분한 피아노 선율', imageUrl: '/images/piano.png' },
+  { id: 'bgm3', name: '바다의 파도', description: '평온한 파도 소리', imageUrl: '/images/sea.png' },
+  { id: 'none', name: '없음', description: '배경음 없이 진행', imageUrl: '/images/noselection.png' },
 ]
 
 export default function RoutineSetupPage() {
