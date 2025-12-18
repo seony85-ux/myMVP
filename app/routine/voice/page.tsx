@@ -15,7 +15,7 @@ export default function VoiceGuidePage() {
 
   const handleStart = () => {
     // TODO: 전역 상태에 저장
-    router.push('/routine/play')
+    router.push('/routine/play?dev=1')
   }
 
   return (
