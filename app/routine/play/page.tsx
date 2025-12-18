@@ -25,7 +25,7 @@ export default function RoutinePlayPage() {
   // Mock 데이터
   const steps = ['토너', '에센스', '크림']
   const currentStepName = `${steps[currentStepIndex]} 단계`
-  const completedSteps = [] // 완료된 단계 인덱스 배열
+  const completedSteps: number[] = [] // 완료된 단계 인덱스 배열
 
   const handleStop = () => {
     // TODO: 확인 다이얼로그 표시
