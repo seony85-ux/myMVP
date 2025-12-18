@@ -7,6 +7,7 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   fullWidth?: boolean
+  className?: string
 }
 
 export default function Button({
@@ -16,6 +17,7 @@ export default function Button({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
+  className = '',
 }: ButtonProps) {
   const baseStyles = `
     font-semibold rounded-lg
@@ -49,7 +51,8 @@ export default function Button({
         ${sizeStyles[size]}
         ${minHeight}
         ${fullWidth ? 'w-full' : ''}
-      `}
+        ${className}
+      `.trim()}
     >
       {children}
     </button>
