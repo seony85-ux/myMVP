@@ -33,13 +33,13 @@ export default function BGMCard({
       `}
       aria-label={`BGM 선택: ${name}`}
     >
-      {/* 이미지 영역 (1:1 비율) */}
-      <div className="w-full aspect-square bg-gray-100 border-b border-gray-200 overflow-hidden">
+      {/* 이미지 영역 (4:3 비율) */}
+      <div className="w-full aspect-[4/3] bg-gray-100 border-b border-gray-200 overflow-hidden">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-bottom"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
