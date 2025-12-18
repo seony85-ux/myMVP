@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import EmotionSelector from '@/components/EmotionSelector'
 import BGMCardList from '@/components/BGMCardList'
 import SkincareStepSelector from '@/components/SkincareStepSelector'
+import RoutineModeSelector from '@/components/RoutineModeSelector'
 import Button from '@/components/Button'
 import AppLayout from '@/components/AppLayout'
 import SectionHeader from '@/components/SectionHeader'
@@ -25,12 +26,25 @@ export default function RoutineSetupPage() {
   // 로컬 상태 관리
   const [emotion, setEmotion] = useState<number | null>(null)
   const [bgmId, setBgmId] = useState<string | null>(null)
+  const [routineMode, setRoutineMode] = useState<'basic' | 'detailed'>('basic')
   const [selectedSteps, setSelectedSteps] = useState<string[]>([])
   const [stepsTouched, setStepsTouched] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  // 다음 버튼 활성화 조건: 스킨케어 단계 최소 1개 이상 선택
-  const isNextButtonEnabled = selectedSteps.length >= 1
+  // 다음 버튼 활성화 조건
+  // basic: 항상 enable
+  // detailed: selectedSteps.length >= 1
+  const isNextButtonEnabled =
+    routineMode === 'basic' || selectedSteps.length >= 1
+
+  const handleModeChange = (mode: 'basic' | 'detailed') => {
+    setRoutineMode(mode)
+    // basic 모드로 전환 시 selectedSteps 초기화
+    if (mode === 'basic') {
+      setSelectedSteps([])
+      setStepsTouched(false)
+    }
+  }
 
   const handleStepsChange = (steps: string[]) => {
     setSelectedSteps(steps)
@@ -48,7 +62,9 @@ export default function RoutineSetupPage() {
   }
 
   const shouldShowStepError =
-    (stepsTouched || submitted) && selectedSteps.length === 0
+    routineMode === 'detailed' &&
+    (stepsTouched || submitted) &&
+    selectedSteps.length === 0
 
   return (
     <AppLayout>
@@ -76,21 +92,31 @@ export default function RoutineSetupPage() {
           </div>
         </SectionBlock>
 
-        {/* 섹션 3: 스킨케어 단계 선택 */}
+        {/* 섹션 3: 루틴 모드 선택 */}
         <SectionBlock>
-          <SectionHeader title="스킨케어 단계" description="최소 1개 이상 선택해주세요" />
+          <SectionHeader title="루틴 모드" />
           <div className="pt-2">
-            <SkincareStepSelector
-              selectedSteps={selectedSteps}
-              onChange={handleStepsChange}
-            />
+            <RoutineModeSelector value={routineMode} onChange={handleModeChange} />
           </div>
-          {shouldShowStepError && (
-            <p className="text-center text-sm text-red-600 mt-4">
-              스킨케어 단계를 최소 1개 이상 선택해주세요
-            </p>
-          )}
         </SectionBlock>
+
+        {/* 섹션 4: 스킨케어 단계 선택 (단계별 가이드 모드일 때만 표시) */}
+        {routineMode === 'detailed' && (
+          <SectionBlock>
+            <SectionHeader title="스킨케어 단계" description="최소 1개 이상 선택해주세요" />
+            <div className="pt-2">
+              <SkincareStepSelector
+                selectedSteps={selectedSteps}
+                onChange={handleStepsChange}
+              />
+            </div>
+            {shouldShowStepError && (
+              <p className="text-center text-sm text-red-600 mt-4">
+                스킨케어 단계를 최소 1개 이상 선택해주세요
+              </p>
+            )}
+          </SectionBlock>
+        )}
         </div>
 
         {/* 하단 고정 버튼 영역 */}

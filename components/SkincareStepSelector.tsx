@@ -11,7 +11,6 @@ const skincareSteps = [
   { id: 'toner', label: '토너' },
   { id: 'essence', label: '에센스' },
   { id: 'cream', label: '크림' },
-  { id: 'allinone', label: '올인원' },
 ]
 
 export default function SkincareStepSelector({

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
-import Toggle from '@/components/Toggle'
+import ToggleSwitch from '@/components/ToggleSwitch'
 
 export default function VoiceGuidePage() {
   const router = useRouter()
@@ -31,14 +31,15 @@ export default function VoiceGuidePage() {
         {/* 중앙: On/Off 토글 */}
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
           <div className="w-full max-w-sm">
-            <Toggle
+            <ToggleSwitch
               value={voiceGuideEnabled}
               onChange={setVoiceGuideEnabled}
               size="lg"
+              ariaLabel="음성 가이드"
             />
-            <p className="text-center text-sm text-gray-500 mt-4">
+            <p className="text-center text-base sm:text-lg text-gray-500 mt-4">
               {voiceGuideEnabled
-                ? '음성 가이드가 재생됩니다'
+                ? '음성과 텍스트 가이드가 같이 재생됩니다.'
                 : '텍스트 가이드만 표시됩니다'}
             </p>
           </div>
