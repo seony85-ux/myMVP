@@ -30,7 +30,7 @@ export default function ThankYouPage() {
             {/* 이미지 영역 */}
             <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg">
               <img
-                src="/images/lastone.png"
+                src="/images/lastone.webp"
                 alt="감사 이미지"
                 className="w-full h-full object-cover"
               />

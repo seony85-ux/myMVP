@@ -28,7 +28,7 @@ export default function IntroPage() {
             {/* 원형 이미지 영역 */}
             <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg">
               <img
-                src="/images/mainimage.png"
+                src="/images/mainimage.webp"
                 alt="메인 이미지"
                 className="w-full h-full object-cover"
               />
