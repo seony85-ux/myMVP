@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
 import ToggleSwitch from '@/components/ToggleSwitch'
+import { useSessionStore } from '@/stores/sessionStore'
 
 export default function VoiceGuidePage() {
   const router = useRouter()
 
-  // 로컬 상태 관리
-  const [voiceGuideEnabled, setVoiceGuideEnabled] = useState<boolean>(true) // 기본값: On (권장)
+  // Zustand 스토어에서 상태 가져오기
+  const voiceGuideEnabled = useSessionStore((state) => state.voiceGuideEnabled)
+  const setVoiceGuideEnabled = useSessionStore((state) => state.setVoiceGuideEnabled)
 
   const handleStart = () => {
-    // TODO: 전역 상태에 저장
     router.push('/routine/play?dev=1')
   }
 

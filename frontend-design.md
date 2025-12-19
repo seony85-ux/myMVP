@@ -117,7 +117,7 @@ app/
 #### 2.2.5 SkincareStepToggle
 - **목적**: 스킨케어 단계 개별 토글
 - **Props**:
-  - `step`: 'toner' | 'essence' | 'cream' | 'allinone'
+  - `step`: 'toner' | 'essence' | 'cream'
   - `label`: string
   - `checked`: boolean
   - `onToggle`: (step: string, checked: boolean) => void

@@ -4,11 +4,15 @@ import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
+import { useSessionStore } from '@/stores/sessionStore'
 
 export default function IntroPage() {
   const router = useRouter()
+  const resetSession = useSessionStore((state) => state.resetSession)
 
   const handleStart = () => {
+    // 모든 세팅값 초기화 후 루틴 설정 화면으로 이동
+    resetSession()
     router.push('/routine/setup')
   }
 
@@ -18,7 +22,7 @@ export default function IntroPage() {
         {/* 상단: 태그라인 */}
         <div className="px-6 pt-16 pb-6 text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
-            잠깐, 피부에만 집중하는 시간
+            잠시, 피부에만 집중하는 시간
           </h1>
         </div>
 

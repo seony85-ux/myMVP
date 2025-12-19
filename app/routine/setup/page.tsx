@@ -11,6 +11,7 @@ import AppLayout from '@/components/AppLayout'
 import SectionHeader from '@/components/SectionHeader'
 import SectionBlock from '@/components/SectionBlock'
 import CTAContainer from '@/components/CTAContainer'
+import { useSessionStore } from '@/stores/sessionStore'
 
 // 임시 BGM 데이터 (나중에 API/전역 상태로 대체)
 const mockBGMs = [
@@ -23,11 +24,18 @@ const mockBGMs = [
 export default function RoutineSetupPage() {
   const router = useRouter()
 
-  // 로컬 상태 관리
-  const [emotion, setEmotion] = useState<number | null>(null)
-  const [bgmId, setBgmId] = useState<string | null>(null)
-  const [routineMode, setRoutineMode] = useState<'basic' | 'detailed'>('basic')
-  const [selectedSteps, setSelectedSteps] = useState<string[]>([])
+  // Zustand 스토어에서 상태 가져오기
+  const emotionScore = useSessionStore((state) => state.emotionScore)
+  const bgmId = useSessionStore((state) => state.bgmId)
+  const routineMode = useSessionStore((state) => state.routineMode)
+  const selectedSteps = useSessionStore((state) => state.selectedSteps)
+  const setEmotionScore = useSessionStore((state) => state.setEmotionScore)
+  const setBgmId = useSessionStore((state) => state.setBgmId)
+  const setRoutineMode = useSessionStore((state) => state.setRoutineMode)
+  const setSelectedSteps = useSessionStore((state) => state.setSelectedSteps)
+  const setBeforeEmotion = useSessionStore((state) => state.setBeforeEmotion)
+
+  // 로컬 UI 상태
   const [stepsTouched, setStepsTouched] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -51,13 +59,20 @@ export default function RoutineSetupPage() {
     setStepsTouched(true)
   }
 
+  const handleEmotionChange = (score: number | null) => {
+    setEmotionScore(score)
+    // 감정 점수를 beforeEmotion에도 저장
+    if (score !== null) {
+      setBeforeEmotion(score)
+    }
+  }
+
   const handleNext = () => {
     if (!isNextButtonEnabled) {
       setSubmitted(true)
       return
     }
 
-    // TODO: 전역 상태에 저장
     router.push('/routine/voice')
   }
 
@@ -80,7 +95,7 @@ export default function RoutineSetupPage() {
         <SectionBlock>
           <SectionHeader title="지금 기분은 어떤가요?" />
           <div className="pt-2">
-            <EmotionSelector value={emotion} onChange={setEmotion} showLabels />
+            <EmotionSelector value={emotionScore} onChange={handleEmotionChange} showLabels />
           </div>
         </SectionBlock>
 
@@ -103,7 +118,7 @@ export default function RoutineSetupPage() {
         {/* 섹션 4: 스킨케어 단계 선택 (단계별 가이드 모드일 때만 표시) */}
         {routineMode === 'detailed' && (
           <SectionBlock>
-            <SectionHeader title="스킨케어 단계" description="최소 1개 이상 선택해주세요" />
+            <SectionHeader title="스킨케어 단계" description="자신의 스킨케어 단계를 선택해보세요.(최소 1개 이상)" />
             <div className="pt-2">
               <SkincareStepSelector
                 selectedSteps={selectedSteps}

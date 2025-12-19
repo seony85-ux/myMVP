@@ -4,11 +4,15 @@ import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
+import { useSessionStore } from '@/stores/sessionStore'
 
 export default function ThankYouPage() {
   const router = useRouter()
+  const resetSession = useSessionStore((state) => state.resetSession)
 
   const handleGoHome = () => {
+    // 세션 리셋 후 인트로로 이동
+    resetSession()
     router.push('/intro')
   }
 

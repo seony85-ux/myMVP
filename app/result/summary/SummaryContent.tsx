@@ -10,20 +10,23 @@ import SatisfactionSelector from '@/components/SatisfactionSelector'
 import ReuseIntentionSelector from '@/components/ReuseIntentionSelector'
 import SectionHeader from '@/components/SectionHeader'
 import SectionBlock from '@/components/SectionBlock'
+import { useSessionStore } from '@/stores/sessionStore'
 
 export default function SummaryContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isAborted = searchParams.get('aborted') === '1'
 
-  // 로컬 상태 관리
-  const [satisfaction, setSatisfaction] = useState<number | null>(null)
-  const [reuseIntention, setReuseIntention] = useState<boolean | null>(null)
-  const [submitted, setSubmitted] = useState(false)
+  // Zustand 스토어에서 상태 가져오기
+  const beforeEmotion = useSessionStore((state) => state.beforeEmotion)
+  const afterEmotion = useSessionStore((state) => state.afterEmotion)
+  const satisfaction = useSessionStore((state) => state.satisfaction)
+  const reuseIntention = useSessionStore((state) => state.reuseIntention)
+  const setSatisfaction = useSessionStore((state) => state.setSatisfaction)
+  const setReuseIntention = useSessionStore((state) => state.setReuseIntention)
 
-  // Mock 데이터 (추후 전역 상태에서 가져올 예정)
-  const beforeEmotion = 3
-  const afterEmotion = 5
+  // 로컬 UI 상태
+  const [submitted, setSubmitted] = useState(false)
 
   // 다음 버튼 활성화 조건: 만족도와 재사용 의향 모두 선택 필수
   const isCompleteButtonEnabled =
@@ -43,8 +46,7 @@ export default function SummaryContent() {
       return
     }
 
-    // TODO: 전역 상태에 저장
-    // TODO: 세션 데이터 저장
+    // TODO: 세션 데이터 저장 (API 호출)
     router.push('/thank-you')
   }
 
@@ -62,16 +64,18 @@ export default function SummaryContent() {
         {/* 스크롤 가능한 콘텐츠 영역 */}
         <div className="px-6 py-6 space-y-8 pb-32">
           {/* 감정 변화 요약 */}
-          <SectionBlock>
-            <SectionHeader title="감정 변화" />
-            <div className="pt-4">
-              <EmotionComparison
-                beforeScore={beforeEmotion}
-                afterScore={afterEmotion}
-                variant="number"
-              />
-            </div>
-          </SectionBlock>
+          {beforeEmotion !== null && afterEmotion !== null && (
+            <SectionBlock>
+              <SectionHeader title="감정 변화" />
+              <div className="pt-4">
+                <EmotionComparison
+                  beforeScore={beforeEmotion}
+                  afterScore={afterEmotion}
+                  variant="number"
+                />
+              </div>
+            </SectionBlock>
+          )}
 
           {/* 만족도 점수 선택 */}
           <SectionBlock>
