@@ -48,9 +48,9 @@ export default function SatisfactionSelector({
           </button>
         ))}
       </div>
-      {value && (
+      {value && value >= 1 && value <= 5 && (
         <p className="text-center text-sm text-gray-600 mt-2">
-          {satisfactionLabels[value as keyof typeof satisfactionLabels]}
+          {satisfactionLabels[value as 1 | 2 | 3 | 4 | 5]}
         </p>
       )}
     </div>

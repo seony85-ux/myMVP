@@ -50,7 +50,7 @@ export default function EmotionSelector({
             `}
             aria-label={`감정 점수 ${score}`}
           >
-            <span className="text-2xl">{emotionEmojis[score as keyof typeof emotionEmojis]}</span>
+            <span className="text-2xl">{emotionEmojis[score as 1 | 2 | 3 | 4 | 5]}</span>
             {showLabels && (
               <span
                 className={`text-xs mt-1 ${
@@ -63,9 +63,9 @@ export default function EmotionSelector({
           </button>
         ))}
       </div>
-      {showLabels && value && (
+      {showLabels && value && value >= 1 && value <= 5 && (
         <p className="text-center text-sm text-gray-600 mt-2">
-          {emotionLabels[value as keyof typeof emotionLabels]}
+          {emotionLabels[value as 1 | 2 | 3 | 4 | 5]}
         </p>
       )}
     </div>

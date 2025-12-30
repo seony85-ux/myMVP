@@ -24,6 +24,8 @@ export default function BGMCardList({
     <div
       className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory"
       style={{ scrollbarWidth: 'none' }} // Firefox 스크롤바 숨김
+      role="listbox"
+      aria-label="배경음 선택"
     >
       {bgms.map((bgm) => (
         <div

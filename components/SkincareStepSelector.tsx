@@ -29,6 +29,8 @@ export default function SkincareStepSelector({
     <div
       className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory"
       style={{ scrollbarWidth: 'none' }} // Firefox 스크롤바 숨김
+      role="group"
+      aria-label="스킨케어 단계 선택"
     >
       {skincareSteps.map((step) => (
         <div

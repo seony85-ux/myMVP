@@ -5,17 +5,23 @@
 ### 1.1 라우트 구조
 ```
 app/
-├── page.tsx                    # 인트로 화면 (루트 경로: /)
-├── setup/
-│   └── page.tsx               # 루틴 설정 화면 (/setup)
-├── voice-guide/
-│   └── page.tsx               # 음성 가이드 설정 화면 (/voice-guide)
+├── page.tsx                    # 루트 경로: /intro로 리다이렉트
+├── intro/
+│   └── page.tsx               # 인트로 화면 (/intro)
 ├── routine/
-│   └── page.tsx               # 루틴 진행 화면 (/routine)
-├── emotion/
-│   └── page.tsx               # 감정 변화 기록 화면 (/emotion)
-├── summary/
-│   └── page.tsx               # 결과 요약 화면 (/summary)
+│   ├── setup/
+│   │   └── page.tsx           # 루틴 설정 화면 (/routine/setup)
+│   ├── voice/
+│   │   └── page.tsx           # 음성 가이드 설정 화면 (/routine/voice)
+│   └── play/
+│       ├── page.tsx           # 루틴 진행 화면 (/routine/play)
+│       └── RoutinePlayContent.tsx
+├── result/
+│   ├── emotion/
+│   │   └── page.tsx           # 감정 변화 기록 화면 (/result/emotion)
+│   └── summary/
+│       ├── page.tsx           # 결과 요약 화면 (/result/summary)
+│       └── SummaryContent.tsx
 └── thank-you/
     └── page.tsx               # 감사 화면 (/thank-you)
 ```
@@ -23,17 +29,17 @@ app/
 ### 1.2 라우트 매핑
 | 화면명 | 경로 | 설명 |
 |--------|------|------|
-| 인트로 화면 | `/` | 앱 진입점, 루틴 시작 진입 |
-| 루틴 설정 화면 | `/setup` | 감정/BGM/스킨케어 단계 선택 |
-| 음성 가이드 설정 화면 | `/voice-guide` | 음성 가이드 On/Off 선택 |
-| 루틴 진행 화면 | `/routine` | 명상 + 스킨케어 자동 진행 |
-| 감정 변화 기록 화면 | `/emotion` | 루틴 후 감정 상태 기록 |
-| 결과 요약 화면 | `/summary` | 루틴 효과 요약 및 피드백 |
+| 인트로 화면 | `/intro` | 앱 진입점, 루틴 시작 진입 |
+| 루틴 설정 화면 | `/routine/setup` | 감정/BGM/스킨케어 단계 선택 |
+| 음성 가이드 설정 화면 | `/routine/voice` | 음성 가이드 On/Off 선택 |
+| 루틴 진행 화면 | `/routine/play` | 명상 + 스킨케어 자동 진행 |
+| 감정 변화 기록 화면 | `/result/emotion` | 루틴 후 감정 상태 기록 |
+| 결과 요약 화면 | `/result/summary` | 루틴 효과 요약 및 피드백 |
 | 감사 화면 | `/thank-you` | 루틴 완료 감사 메시지 |
 
 ### 1.3 네비게이션 플로우
 ```
-/ → /setup → /voice-guide → /routine → /emotion → /summary → /thank-you → /
+/ → /intro → /routine/setup → /routine/voice → /routine/play → /result/emotion → /result/summary → /thank-you → /intro
 ```
 
 ---
@@ -42,29 +48,47 @@ app/
 
 ### 2.1 레이아웃 컴포넌트
 
-#### 2.1.1 MobileLayout
+#### 2.1.1 AppLayout
 - **목적**: 모바일 웹 최적화 레이아웃
+- **Props**:
+  - `children`: React.ReactNode
 - **기능**:
-  - 모바일 뷰포트 설정
-  - 최대 너비 제한 (예: 428px)
-  - 세로 스크롤 지원
-  - 안전 영역(Safe Area) 고려
+  - 모바일 뷰포트 설정 (min-h-[100svh])
+  - 최대 너비 제한 (max-w-md, 약 448px)
+  - 중앙 정렬 (mx-auto)
+  - 배경색 설정 (외부: gray-50, 내부: white)
 - **사용 위치**: 모든 페이지의 루트 레이아웃
 
-#### 2.1.2 PageContainer
-- **목적**: 페이지 콘텐츠 컨테이너
+#### 2.1.2 CTAContainer
+- **목적**: 하단 고정 CTA 버튼 컨테이너
+- **Props**:
+  - `children`: React.ReactNode
 - **기능**:
-  - 패딩 및 마진 관리
-  - 세로 스크롤 영역 정의
-  - 최소 높이 보장 (100vh)
-- **사용 위치**: 모든 페이지
+  - 화면 하단에 고정 위치 (fixed)
+  - 상단 테두리 표시
+  - 최대 너비 제한 (max-w-md)
+  - 패딩 관리
+- **사용 위치**: 모든 페이지의 하단 버튼 영역
 
-#### 2.1.3 SectionContainer
+#### 2.1.3 SectionBlock
 - **목적**: 섹션별 콘텐츠 그룹핑
+- **Props**:
+  - `children`: React.ReactNode
+  - `className`: string (선택사항)
 - **기능**:
-  - 섹션 간 간격 관리
-  - 섹션 타이틀 표시
-- **사용 위치**: 루틴 설정 화면의 각 섹션
+  - 섹션 간 간격 관리 (space-y-4)
+- **사용 위치**: 루틴 설정 화면, 결과 요약 화면의 각 섹션
+
+#### 2.1.4 SectionHeader
+- **목적**: 섹션 제목 및 설명 표시
+- **Props**:
+  - `title`: string
+  - `description`: string (선택사항)
+- **기능**:
+  - 섹션 제목 표시
+  - 선택적 설명 문구 표시
+  - 하단 테두리 표시
+- **사용 위치**: SectionBlock 내부에서 사용
 
 ---
 
@@ -128,18 +152,36 @@ app/
 - **Props**:
   - `selectedSteps`: string[]
   - `onChange`: (steps: string[]) => void
-- **사용 위치**: 루틴 설정 화면 (섹션 3)
+- **사용 위치**: 루틴 설정 화면 (섹션 4)
 - **기능**: 최소 1개 이상 선택 검증
 
-#### 2.2.7 Toggle
-- **목적**: On/Off 토글 버튼
+#### 2.2.7 RoutineModeSelector
+- **목적**: 루틴 모드 선택 (기본 / 단계별 가이드)
+- **Props**:
+  - `value`: 'basic' | 'detailed'
+  - `onChange`: (value: 'basic' | 'detailed') => void
+- **사용 위치**: 루틴 설정 화면 (섹션 3)
+- **UI 형태**: 세그먼트 컨트롤 형태의 버튼 2개, 선택된 모드에 대한 설명 표시
+
+#### 2.2.8 ToggleSwitch
+- **목적**: On/Off 토글 스위치
 - **Props**:
   - `value`: boolean
   - `onChange`: (value: boolean) => void
   - `label`: string (선택사항)
   - `size`: 'sm' | 'md' | 'lg'
+  - `ariaLabel`: string (선택사항)
 - **사용 위치**: 음성 가이드 설정 화면
-- **특징**: 큰 크기, 터치 친화적
+- **특징**: 큰 크기, 터치 친화적, ON/OFF 텍스트 표시
+
+#### 2.2.9 Toggle
+- **목적**: On/Off 토글 버튼 (대체 컴포넌트)
+- **Props**:
+  - `value`: boolean
+  - `onChange`: (value: boolean) => void
+  - `label`: string (선택사항)
+  - `size`: 'sm' | 'md' | 'lg'
+- **사용 위치**: 현재 미사용 (ToggleSwitch 사용)
 
 #### 2.2.8 ProgressIndicator
 - **목적**: 단계 진행 상태 시각화
@@ -151,7 +193,7 @@ app/
 - **사용 위치**: 루틴 진행 화면
 - **UI 형태**: 진행 바 또는 점(dot) 인디케이터
 
-#### 2.2.9 MeditationText
+#### 2.2.11 MeditationText
 - **목적**: 명상 문장 표시
 - **Props**:
   - `text`: string
@@ -167,7 +209,7 @@ app/
   - `totalSteps`: number
 - **사용 위치**: 루틴 진행 화면 (상단 영역)
 
-#### 2.2.11 Dialog / Modal
+#### 2.2.13 Dialog / Modal
 - **목적**: 확인 다이얼로그
 - **Props**:
   - `open`: boolean
@@ -188,7 +230,7 @@ app/
   - `type`: 'error' | 'warning'
 - **사용 위치**: 모든 화면의 검증 에러 표시
 
-#### 2.2.13 SatisfactionSelector
+#### 2.2.15 SatisfactionSelector
 - **목적**: 만족도 점수 선택 (1~5)
 - **Props**:
   - `value`: number | null
@@ -196,7 +238,7 @@ app/
 - **사용 위치**: 결과 요약 화면
 - **UI 형태**: EmotionSelector와 동일한 패턴
 
-#### 2.2.14 ReuseIntentionSelector
+#### 2.2.16 ReuseIntentionSelector
 - **목적**: 재사용 의향 선택 (Yes/No)
 - **Props**:
   - `value`: boolean | null
@@ -204,7 +246,7 @@ app/
 - **사용 위치**: 결과 요약 화면
 - **UI 형태**: Yes/No 버튼 또는 토글
 
-#### 2.2.15 EmotionComparison
+#### 2.2.17 EmotionComparison
 - **목적**: 감정 변화 요약 표시
 - **Props**:
   - `beforeScore`: number
@@ -263,60 +305,42 @@ app/
 
 ### 3.1 세션 상태 (Session State)
 
-#### 3.1.1 세션 기본 정보
+#### 3.1.1 실제 구현된 세션 상태 구조 (Zustand Store)
 ```typescript
 {
-  sessionId: string | null;           // 세션 고유 ID (서버 생성)
-  createdAt: Date | null;             // 세션 생성 시간
-  status: 'idle' | 'setup' | 'active' | 'completed' | 'cancelled';
-}
-```
-
-#### 3.1.2 루틴 설정 정보
-```typescript
-{
-  // 감정 상태
-  beforeEmotion: number | null;       // 루틴 전 감정 점수 (1~5)
-  afterEmotion: number | null;        // 루틴 후 감정 점수 (1~5)
-  
-  // BGM 설정
+  // 루틴 설정 관련
+  emotionScore: number | null;         // 감정 점수 (1~5) - setup 화면에서 선택
   bgmId: string | null;               // 선택된 BGM ID (null = 없음)
-  
-  // 스킨케어 단계
-  selectedSteps: string[];            // 선택된 단계 배열 ['toner', 'essence', ...]
-  
-  // 음성 가이드 설정
+  routineMode: 'basic' | 'detailed';  // 루틴 모드 (기본값: 'basic')
+  selectedSteps: string[];            // 선택된 단계 배열 ['toner', 'essence', 'cream']
   voiceGuideEnabled: boolean;         // 음성 가이드 사용 여부 (기본값: true)
-}
-```
-
-#### 3.1.3 루틴 진행 정보
-```typescript
-{
-  // 진행 상태
-  currentStepIndex: number;            // 현재 진행 중인 단계 인덱스
-  currentStepName: string | null;      // 현재 단계명
-  currentMeditationText: string | null; // 현재 명상 문장
-  startedAt: Date | null;              // 루틴 시작 시간
-  completedAt: Date | null;            // 루틴 완료 시간
   
-  // 단계별 정보
-  stepProgress: {
-    stepName: string;
-    startedAt: Date;
-    completedAt: Date | null;
-    duration: number;                  // 소요 시간 (초)
-  }[];
+  // 감정 관련
+  beforeEmotion: number | null;        // 루틴 전 감정 점수 (1~5)
+  afterEmotion: number | null;         // 루틴 후 감정 점수 (1~5)
+  
+  // 피드백 관련
+  satisfaction: number | null;         // 만족도 점수 (1~5)
+  reuseIntention: boolean | null;      // 재사용 의향 (true/false)
+  
+  // Actions
+  setEmotionScore: (score: number | null) => void
+  setBgmId: (id: string | null) => void
+  setRoutineMode: (mode: 'basic' | 'detailed') => void
+  setSelectedSteps: (steps: string[]) => void
+  setVoiceGuideEnabled: (enabled: boolean) => void
+  setBeforeEmotion: (score: number | null) => void
+  setAfterEmotion: (score: number | null) => void
+  setSatisfaction: (score: number | null) => void
+  setReuseIntention: (intention: boolean | null) => void
+  resetSession: () => void
 }
 ```
 
-#### 3.1.4 피드백 정보
-```typescript
-{
-  satisfaction: number | null;         // 만족도 점수 (1~5)
-  reuseIntention: boolean | null;       // 재사용 의향 (true/false)
-}
-```
+**참고**: 
+- 세션 상태는 Zustand의 `persist` 미들웨어를 사용하여 localStorage에 저장됨
+- 세션 ID, 생성 시간 등은 현재 클라이언트 측에서 관리하지 않음 (서버 연동 시 추가 예정)
+- 루틴 진행 상태(currentStepIndex 등)는 각 페이지 컴포넌트의 로컬 상태로 관리됨
 
 ---
 

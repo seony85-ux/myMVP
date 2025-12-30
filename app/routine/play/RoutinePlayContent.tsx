@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
@@ -49,8 +49,8 @@ export default function RoutinePlayContent() {
   // 현재 진행 중인 단계 인덱스 관리 (초기값: 0)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
 
-  // routineMode에 따라 단계 배열 구성
-  const buildSteps = () => {
+  // routineMode에 따라 단계 배열 구성 (메모이제이션)
+  const routineSteps = useMemo(() => {
     if (routineMode === 'basic') {
       // 기본 모드: 고정 단계
       return ['start', 'free', 'end']
@@ -67,24 +67,24 @@ export default function RoutinePlayContent() {
       
       return ['start', ...sortedSteps, 'end']
     }
-  }
-
-  const routineSteps = buildSteps()
+  }, [routineMode, selectedSteps])
   const currentStep = routineSteps[currentStepIndex] || 'start'
   
-  // 현재 단계명 표시용
-  const getCurrentStepName = () => {
+  // 현재 단계명 표시용 (메모이제이션)
+  const currentStepName = useMemo(() => {
     if (currentStep === 'start') return '시작'
     if (currentStep === 'free') return '자율'
     if (currentStep === 'end') return '마무리'
     return `${currentStep} 단계`
-  }
+  }, [currentStep])
   
-  const currentStepName = getCurrentStepName()
-  const completedSteps: number[] = [] // 완료된 단계 인덱스 배열
+  // 완료된 단계 인덱스 배열: 현재 단계 이전의 모든 단계 (메모이제이션)
+  const completedSteps = useMemo(() => {
+    return Array.from({ length: currentStepIndex }, (_, i) => i)
+  }, [currentStepIndex])
 
-  // 현재 단계에 따른 문구 설정
-  const getCurrentPhrase = () => {
+  // 현재 단계에 따른 문구 설정 (메모이제이션)
+  const currentPhraseText = useMemo(() => {
     switch (currentStep) {
       case 'start':
         return '지금 이 순간, 나에게 집중해보세요.'
@@ -96,59 +96,61 @@ export default function RoutinePlayContent() {
         // 토너, 에센스, 크림 등의 단계별 명상 문구
         return `지금 이 순간, ${currentStep}에 집중해보세요.`
     }
-  }
-
-  const currentPhraseText = getCurrentPhrase()
+  }, [currentStep])
   
-  // BGM 이름 가져오기
-  const bgmName = bgmId ? (BGM_NAMES[bgmId] || '알 수 없음') : '없음'
+  // BGM 이름 가져오기 (메모이제이션)
+  const bgmName = useMemo(() => {
+    return bgmId ? (BGM_NAMES[bgmId] || '알 수 없음') : '없음'
+  }, [bgmId])
 
   // 중단 상태 관리 (중단 시 타이머 정리를 위해)
   const [isAborted, setIsAborted] = useState(false)
   // 일시중지 상태 관리
   const [isPaused, setIsPaused] = useState(false)
 
-  const handleStop = () => {
+  // 마지막 단계인지 확인 (메모이제이션)
+  const isLastStep = useMemo(() => {
+    return currentStepIndex >= routineSteps.length - 1
+  }, [currentStepIndex, routineSteps.length])
+
+  const handleStop = useCallback(() => {
     // TODO: 확인 다이얼로그 표시
     // TODO: 루틴 중단 처리 (세션 상태를 aborted로 저장)
     // 중단 상태 설정 (타이머 정리를 위해)
     setIsAborted(true)
     // 중단 시 Summary 화면으로 이동 (aborted 파라미터 포함)
     router.push('/result/summary?aborted=1')
-  }
+  }, [router])
 
   // 일시중지/재개 핸들러
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     setIsPaused(true)
-  }
+  }, [])
 
-  const handleResume = () => {
+  const handleResume = useCallback(() => {
     setIsPaused(false)
-  }
+  }, [])
 
   // 끝내기 핸들러 (마지막 단계 완료 후)
-  const handleComplete = () => {
+  const handleComplete = useCallback(() => {
     router.push('/result/emotion')
-  }
-
-  // 마지막 단계인지 확인
-  const isLastStep = currentStepIndex >= routineSteps.length - 1
+  }, [router])
 
   // 개발용 핸들러
-  const handleDevComplete = () => {
+  const handleDevComplete = useCallback(() => {
     router.push('/result/emotion')
-  }
+  }, [router])
 
-  const handleDevAbort = () => {
+  const handleDevAbort = useCallback(() => {
     router.push('/result/summary?aborted=1')
-  }
+  }, [router])
 
   // 다음 단계로 이동 (dev 모드용)
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     if (currentStepIndex < routineSteps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1)
+      setCurrentStepIndex((prev) => prev + 1)
     }
-  }
+  }, [currentStepIndex, routineSteps.length])
 
   // 자동 진행 로직: 10초마다 다음 단계로 전환
   useEffect(() => {
@@ -169,16 +171,19 @@ export default function RoutinePlayContent() {
 
     // 각 단계마다 10초 후 다음 단계로 전환
     const timer = setTimeout(() => {
-      if (currentStepIndex < routineSteps.length - 1) {
-        setCurrentStepIndex((prev) => prev + 1)
-      }
+      setCurrentStepIndex((prev) => {
+        if (prev < routineSteps.length - 1) {
+          return prev + 1
+        }
+        return prev
+      })
     }, 10000) // 10초
 
     // cleanup: 컴포넌트 언마운트 또는 의존성 변경 시 타이머 정리
     return () => {
       clearTimeout(timer)
     }
-  }, [currentStepIndex, routineSteps, router, isAborted, isPaused, isLastStep])
+  }, [currentStepIndex, routineSteps.length, isAborted, isPaused, isLastStep])
 
   return (
     <AppLayout>

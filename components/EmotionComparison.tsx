@@ -29,15 +29,15 @@ export default function EmotionComparison({
           <div className="text-center flex-1">
             <p className="text-sm text-gray-600 mb-2">이전</p>
             <div className="text-4xl mb-1">
-              {emotionEmojis[beforeScore as keyof typeof emotionEmojis]}
+              {emotionEmojis[beforeScore as 1 | 2 | 3 | 4 | 5]}
             </div>
             <p className="text-lg font-bold text-gray-800">{beforeScore}점</p>
           </div>
-          <div className="text-2xl text-gray-400 mx-4">→</div>
+          <div className="text-2xl text-gray-400 mx-4" aria-hidden="true">→</div>
           <div className="text-center flex-1">
             <p className="text-sm text-gray-600 mb-2">이후</p>
             <div className="text-4xl mb-1">
-              {emotionEmojis[afterScore as keyof typeof emotionEmojis]}
+              {emotionEmojis[afterScore as 1 | 2 | 3 | 4 | 5]}
             </div>
             <p className="text-lg font-bold text-gray-800">{afterScore}점</p>
           </div>
