@@ -113,7 +113,15 @@ export default function RoutinePlayContent() {
   }, [currentStepIndex, routineSteps.length])
 
   const handleStop = useCallback(() => {
-    // TODO: 확인 다이얼로그 표시
+    // 확인 다이얼로그 표시
+    const confirmed = window.confirm('정말 루틴을 중단하시겠어요?')
+    
+    if (!confirmed) {
+      // 취소 시 아무 동작 없이 그대로 유지
+      return
+    }
+
+    // 확인 시에만 중단 처리
     // TODO: 루틴 중단 처리 (세션 상태를 aborted로 저장)
     // 중단 상태 설정 (타이머 정리를 위해)
     setIsAborted(true)
