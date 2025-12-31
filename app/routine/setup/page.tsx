@@ -15,7 +15,6 @@ import { useSessionStore } from '@/stores/sessionStore'
 
 // 임시 BGM 데이터 (나중에 API/전역 상태로 대체)
 const mockBGMs = [
-  { id: 'bgm1', name: '자연의 소리', description: '숲속 새소리와 물소리', imageUrl: '/images/forest.webp' },
   { id: 'bgm2', name: '명상 음악', description: '차분한 피아노 선율', imageUrl: '/images/piano.webp' },
   { id: 'bgm3', name: '바다의 파도', description: '평온한 파도 소리', imageUrl: '/images/sea.webp' },
   { id: 'none', name: '없음', description: '배경음 없이 진행', imageUrl: '/images/noselection.webp' },

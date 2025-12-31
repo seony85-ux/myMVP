@@ -12,7 +12,6 @@ import { useSessionStore } from '@/stores/sessionStore'
 
 // BGM 이름 매핑 (setup 페이지와 동일)
 const BGM_NAMES: Record<string, string> = {
-  bgm1: '자연의 소리',
   bgm2: '명상 음악',
   bgm3: '바다의 파도',
   none: '없음',
