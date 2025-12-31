@@ -48,6 +48,17 @@ export default function RoutinePlayContent() {
   // 현재 진행 중인 단계 인덱스 관리 (초기값: 0)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
 
+  // 단계별 침묵 시간 설정 (ms 단위) - 컴포넌트 외부 상수로 정의
+  const stepSilenceMap: Record<string, number | undefined> = useMemo(
+    () => ({
+      start: 3000, // 3초
+      free: 0,
+      end: 0,
+      // 기본값은 0, 필요시 단계별로 설정 가능
+    }),
+    []
+  )
+
   // routineMode에 따라 단계 배열 구성 (메모이제이션)
   const routineSteps = useMemo(() => {
     if (routineMode === 'basic') {
@@ -68,6 +79,12 @@ export default function RoutinePlayContent() {
     }
   }, [routineMode, selectedSteps])
   const currentStep = routineSteps[currentStepIndex] || 'start'
+  
+  // 현재 단계의 침묵 시간 가져오기
+  const currentStepSilence = useMemo(() => {
+    // 문자열인 경우 매핑에서 찾기
+    return stepSilenceMap[currentStep] ?? 0
+  }, [currentStep, stepSilenceMap])
   
   // 현재 단계명 표시용 (메모이제이션)
   const currentStepName = useMemo(() => {
@@ -106,6 +123,8 @@ export default function RoutinePlayContent() {
   const [isAborted, setIsAborted] = useState(false)
   // 일시중지 상태 관리
   const [isPaused, setIsPaused] = useState(false)
+  // 침묵 시간 대기 상태 관리
+  const [isSilentWaiting, setIsSilentWaiting] = useState(false)
 
   // 마지막 단계인지 확인 (메모이제이션)
   const isLastStep = useMemo(() => {
@@ -158,6 +177,39 @@ export default function RoutinePlayContent() {
       setCurrentStepIndex((prev) => prev + 1)
     }
   }, [currentStepIndex, routineSteps.length])
+
+  // 침묵 시간 대기 오버레이 테스트 (dev 모드용)
+  const handleTestSilence = useCallback(() => {
+    setIsSilentWaiting(true)
+    // 3초 후 자동으로 해제 (테스트용)
+    setTimeout(() => {
+      setIsSilentWaiting(false)
+    }, 3000)
+  }, [])
+
+  // 단계 완료 핸들러 (음성 재생 후 침묵 시간 처리용)
+  const handleStepComplete = useCallback(() => {
+    if (currentStepIndex < routineSteps.length - 1) {
+      setCurrentStepIndex((prev) => prev + 1)
+    }
+  }, [currentStepIndex, routineSteps.length])
+
+  // 음성 재생 완료 핸들러
+  const onVoiceEnded = useCallback(() => {
+    const silenceAfter = currentStepSilence ?? 0
+    if (silenceAfter > 0) {
+      // 침묵 시간 대기 시작
+      setIsSilentWaiting(true)
+      // 침묵 시간 후 다음 단계로 이동
+      setTimeout(() => {
+        setIsSilentWaiting(false)
+        handleStepComplete()
+      }, silenceAfter)
+    } else {
+      // 침묵 시간이 없으면 즉시 다음 단계로 이동
+      handleStepComplete()
+    }
+  }, [currentStepSilence, handleStepComplete])
 
   // 자동 진행 로직: 10초마다 다음 단계로 전환
   useEffect(() => {
@@ -229,8 +281,17 @@ export default function RoutinePlayContent() {
         )}
 
         {/* 중앙: 현재 명상 문장 */}
-        <div className="flex-1 flex items-center justify-center px-6 pb-32">
+        <div className="flex-1 flex items-center justify-center px-6 pb-32 relative">
           <MeditationText text={currentPhraseText} animate={false} />
+          
+          {/* 침묵 시간 대기 오버레이 */}
+          {isSilentWaiting && (
+            <div className="absolute inset-0 bottom-32 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10 transition-opacity duration-300 opacity-100">
+              <p className="text-white text-lg sm:text-xl font-medium">
+                잠시 집중해보세요...
+              </p>
+            </div>
+          )}
         </div>
 
         {/* 하단: 버튼 영역 */}
@@ -294,6 +355,15 @@ export default function RoutinePlayContent() {
                 DEV: 다음 단계로 ({currentStepIndex + 1}/{routineSteps.length})
               </Button>
             )}
+            <Button
+              onClick={handleTestSilence}
+              variant="secondary"
+              size="sm"
+              className="text-xs opacity-70 hover:opacity-100"
+              disabled={isSilentWaiting}
+            >
+              DEV: 침묵 시간 테스트
+            </Button>
             <Button
               onClick={handleDevComplete}
               variant="secondary"
