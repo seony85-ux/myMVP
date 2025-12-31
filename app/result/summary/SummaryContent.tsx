@@ -97,6 +97,15 @@ export default function SummaryContent() {
 
         {/* 스크롤 가능한 콘텐츠 영역 */}
         <div className="px-6 py-6 space-y-8 pb-32">
+          {/* 중단된 세션 안내 메시지 */}
+          {isAborted && (
+            <div className="bg-gray-100 rounded-lg px-4 py-3 text-center">
+              <p className="text-sm text-gray-700">
+                ⚠ 루틴이 중단되었습니다. 결과는 저장되지 않습니다.
+              </p>
+            </div>
+          )}
+
           {/* 감정 변화 요약 */}
           {beforeEmotion !== null && afterEmotion !== null && (
             <SectionBlock>
