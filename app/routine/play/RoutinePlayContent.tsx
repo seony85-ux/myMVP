@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
@@ -56,28 +56,20 @@ const AUTONOMOUS_TEXT = '자유롭게 스킨케어를 진행해보세요.'
 
 // 자율 모드 시간 설정 (밀리초 단위)
 // ⚙️ 시간 설정 위치: 아래 AUTONOMOUS_DURATION 값을 변경하세요
-// 예: 60000 = 1분, 120000 = 2분, 180000 = 3분
-const AUTONOMOUS_DURATION = 120000 // 기본값: 2분 (120초)
+// 예: 5000 = 5초, 60000 = 1분, 120000 = 2분
+const AUTONOMOUS_DURATION = 5000 // 테스트용: 5초
 
 // 진행 단계 UI 매핑은 모드별로 동적으로 생성됨
 
 
 export default function RoutinePlayContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   
   // Zustand 스토어에서 상태 가져오기
   const bgmId = useSessionStore((state) => state.bgmId)
   const routineMode = useSessionStore((state) => state.routineMode)
-  
-  // 개발 모드 상태: 초기값은 false
-  const [isDevMode, setIsDevMode] = useState(false)
-  
-  // useEffect에서 dev 쿼리 파라미터 확인
-  useEffect(() => {
-    const devParam = searchParams.get('dev')
-    setIsDevMode(devParam === '1')
-  }, [searchParams])
+  const voiceGuideEnabled = useSessionStore((state) => state.voiceGuideEnabled)
+  const selectedSteps = useSessionStore((state) => state.selectedSteps)
 
   // 현재 진행 중인 단계 인덱스 관리 (초기값: 0)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -89,9 +81,6 @@ export default function RoutinePlayContent() {
   // Supabase에서 가져온 BGM 데이터
   const [bgms, setBgms] = useState<BgmData[]>([])
   const [isLoadingBgms, setIsLoadingBgms] = useState(true)
-  
-  // 침묵 시간 대기 상태 관리
-  const [isSilentWaiting, setIsSilentWaiting] = useState(false)
   
   // 음성 재생 중 상태 관리
   const [isVoicePlaying, setIsVoicePlaying] = useState(false)
@@ -195,13 +184,39 @@ export default function RoutinePlayContent() {
       return steps
     }
 
+    // detailed 모드일 때는 selectedSteps에 따라 필터링
+    if (routineMode === 'detailed') {
+      // 항상 포함되는 단계: intro1, intro2, finish1, finish2
+      const alwaysIncluded = ['intro1', 'intro2', 'finish1', 'finish2']
+      
+      // selectedSteps를 기반으로 포함할 step_id 패턴 생성
+      // 'toner' -> 'toner1', 'toner2'
+      // 'essence' -> 'essence1', 'essence2'
+      // 'cream' -> 'cream1', 'cream2'
+      const stepPatterns: string[] = []
+      selectedSteps.forEach((step) => {
+        if (step === 'toner') {
+          stepPatterns.push('toner1', 'toner2')
+        } else if (step === 'essence') {
+          stepPatterns.push('essence1', 'essence2')
+        } else if (step === 'cream') {
+          stepPatterns.push('cream1', 'cream2')
+        }
+      })
+      
+      // 필터링: alwaysIncluded + stepPatterns에 포함된 것만
+      filteredGuides = voiceGuides.filter((guide) => 
+        alwaysIncluded.includes(guide.step_id) || stepPatterns.includes(guide.step_id)
+      )
+    }
+
     return filteredGuides.map((guide) => ({
       id: guide.step_id,
       text: STEP_TEXTS[guide.step_id] || '',
       audio_url: guide.audio_url,
       silenceAfter: guide.silence_after,
     }))
-  }, [voiceGuides, routineMode])
+  }, [voiceGuides, routineMode, selectedSteps])
 
   // 현재 단계
   const currentStep = useMemo(() => {
@@ -227,10 +242,30 @@ export default function RoutinePlayContent() {
 
   // UI 단계 이름 배열 (모드별로 다름)
   const stepUiNames = useMemo(() => {
-    return routineMode === 'basic' 
-      ? ['시작', '자율', '마무리']
-      : ['시작', '토너', '에센스', '크림', '마무리']
-  }, [routineMode])
+    if (routineMode === 'basic') {
+      return ['시작', '자율', '마무리']
+    } else {
+      // detailed 모드: selectedSteps 기반으로 동적 생성
+      const stepLabels: Record<string, string> = {
+        'toner': '토너',
+        'essence': '에센스',
+        'cream': '크림',
+      }
+      
+      // 항상 시작과 마무리 포함
+      const names: string[] = ['시작']
+      
+      // selectedSteps 순서대로 추가
+      selectedSteps.forEach((step) => {
+        if (stepLabels[step]) {
+          names.push(stepLabels[step])
+        }
+      })
+      
+      names.push('마무리')
+      return names
+    }
+  }, [routineMode, selectedSteps])
 
   // 진행 단계 UI 인덱스 계산
   const uiStepIndex = useMemo(() => {
@@ -243,10 +278,34 @@ export default function RoutinePlayContent() {
       if (currentStepIndex === 2) return 1 // 자율 (autonomous)
       return 2 // 마무리 (finish1, finish2)
     } else {
-      // detailed 모드: 기존 로직 유지 (2단계씩 묶어서 5단계)
-      return Math.floor(currentStepIndex / 2)
+      // detailed 모드: routineSteps의 실제 구조에 맞게 계산
+      // routineSteps 구조: [intro1, intro2, ...선택된단계들(각 2개), finish1, finish2]
+      // stepUiNames 구조: ['시작', ...선택된단계이름들, '마무리']
+      // currentStepIndex 0-1 -> uiStepIndex 0 (시작)
+      // currentStepIndex 2-3 -> uiStepIndex 1 (첫 번째 선택된 단계)
+      // currentStepIndex 4-5 -> uiStepIndex 2 (두 번째 선택된 단계)
+      // ... 마지막 2개 -> uiStepIndex 마지막 (마무리)
+      
+      const currentStep = routineSteps[currentStepIndex]
+      if (!currentStep) return 0
+      
+      // intro 단계 (0-1) -> 시작 (0)
+      if (currentStep.id === 'intro1' || currentStep.id === 'intro2') {
+        return 0
+      }
+      
+      // finish 단계 (마지막 2개) -> 마무리 (마지막)
+      if (currentStep.id === 'finish1' || currentStep.id === 'finish2') {
+        return stepUiNames.length - 1
+      }
+      
+      // 중간 단계들: intro 다음부터 finish 전까지
+      // intro는 인덱스 0-1 (2개), 각 선택된 단계는 2개씩
+      // (currentStepIndex - 2) / 2 + 1 = UI 인덱스
+      const middleStepIndex = Math.floor((currentStepIndex - 2) / 2) + 1
+      return Math.min(middleStepIndex, stepUiNames.length - 1)
     }
-  }, [currentStepIndex, routineMode])
+  }, [currentStepIndex, routineMode, routineSteps, stepUiNames.length])
 
   // 현재 단계명 표시용
   const currentStepName = useMemo(() => {
@@ -261,30 +320,13 @@ export default function RoutinePlayContent() {
 
   // 표시할 메시지 텍스트
   const displayText = useMemo(() => {
-    if (isSilentWaiting) {
-      return '잠시 집중해보세요...'
-    }
-    
-    // basic 모드에서 intro2 다음에 자율 모드 텍스트 표시
-    // intro2가 끝나고 finish1이 시작되기 전에 자율 시간이 있음
-    // 하지만 현재 구조상 intro2 다음에 바로 finish1이 재생되므로,
-    // 자율 시간은 침묵 시간으로 처리되거나 별도 단계로 추가해야 함
-    
     return currentStep.text
-  }, [isSilentWaiting, currentStep.text, routineMode, currentStepIndex])
+  }, [currentStep.text])
 
   // 마지막 단계인지 확인
   const isLastStep = useMemo(() => {
     return routineSteps.length > 0 && currentStepIndex >= routineSteps.length - 1
   }, [currentStepIndex, routineSteps.length])
-
-  // BGM 이름 가져오기 (Supabase에서 가져온 데이터 사용)
-  const bgmName = useMemo(() => {
-    if (!bgmId || bgmId === 'none') return '없음'
-    
-    const bgm = bgms.find((b) => b.id === bgmId)
-    return bgm?.name || '알 수 없음'
-  }, [bgmId, bgms])
 
   // 중단 핸들러
   const handleStop = useCallback(() => {
@@ -317,17 +359,15 @@ export default function RoutinePlayContent() {
     router.push('/result/emotion')
   }, [router])
 
-  // 다음 단계로 이동
-  const handleNextStep = useCallback(() => {
-    if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
-      setCurrentStepIndex((prev) => prev + 1)
-    }
-  }, [currentStepIndex, routineSteps.length])
-
   // 음성 재생 완료 핸들러
   const onVoiceEnded = useCallback(() => {
     setIsVoicePlaying(false)
-    const silenceAfter = currentStep.silenceAfter
+    
+    // 현재 단계 정보 가져오기
+    const step = routineSteps[currentStepIndex]
+    if (!step) return
+    
+    const silenceAfter = step.silenceAfter
     
     // 기존 타이머 정리
     if (silenceTimerRef.current) {
@@ -336,12 +376,8 @@ export default function RoutinePlayContent() {
     }
     
     if (silenceAfter > 0) {
-      // 침묵 시간 대기 시작
-      setIsSilentWaiting(true)
-      
       // 침묵 시간 후 다음 단계로 이동
       silenceTimerRef.current = setTimeout(() => {
-        setIsSilentWaiting(false)
         silenceTimerRef.current = null
         if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
           setCurrentStepIndex((prev) => prev + 1)
@@ -353,7 +389,7 @@ export default function RoutinePlayContent() {
         setCurrentStepIndex((prev) => prev + 1)
       }
     }
-  }, [currentStep, currentStepIndex, routineSteps.length])
+  }, [currentStepIndex, routineSteps])
   
   // 중단/일시중지 시 타이머 정리
   useEffect(() => {
@@ -389,26 +425,55 @@ export default function RoutinePlayContent() {
       return
     }
 
+    // 현재 단계 정보 가져오기
+    const step = routineSteps[currentStepIndex]
+    if (!step) return
+
     // 음성 재생 시작
-    if (voiceUrl) {
+    if (step.audio_url) {
       setIsVoicePlaying(true)
-      setIsSilentWaiting(false)
       
-      // AudioManager가 재생을 시작하도록 play 호출
-      // playVoice가 true이므로 음성이 재생됨
-      audioManagerRef.current?.play()
-    } else {
-      // audio_url이 없으면 (자율 모드 등) 자동으로 다음 단계로 진행
-      if (currentStep.id === 'autonomous') {
-        // 자율 모드는 설정된 시간(AUTONOMOUS_DURATION) 후 자동으로 다음 단계로 진행
-        setIsSilentWaiting(true) // 자율 모드 중임을 표시
-        
-        const timer = setTimeout(() => {
-          setIsSilentWaiting(false)
+      // 타이머 정리용 배열
+      const timers: NodeJS.Timeout[] = []
+      
+      // intro1일 경우 2초 지연 후 재생
+      if (step.id === 'intro1') {
+        const playTimer = setTimeout(() => {
+          audioManagerRef.current?.play()
+        }, 2000)
+        timers.push(playTimer)
+      } else {
+        // AudioManager가 재생을 시작하도록 play 호출
+        audioManagerRef.current?.play()
+      }
+      
+      // 음성 off일 때는 onVoiceEnded가 호출되지 않으므로, 타임아웃으로 다음 단계 진행
+      if (!voiceGuideEnabled) {
+        // 음성 off일 때는 기본 대기 시간(3초) + 침묵 시간 후 다음 단계로 진행
+        const waitTime = 3000 + (step.silenceAfter || 0)
+        const waitTimer = setTimeout(() => {
           if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
             setCurrentStepIndex((prev) => prev + 1)
           }
-        }, currentStep.silenceAfter || AUTONOMOUS_DURATION)
+        }, waitTime)
+        timers.push(waitTimer)
+      }
+      
+      // cleanup 함수 반환
+      if (timers.length > 0) {
+        return () => {
+          timers.forEach(timer => clearTimeout(timer))
+        }
+      }
+    } else {
+      // audio_url이 없으면 (자율 모드 등) 자동으로 다음 단계로 진행
+      if (step.id === 'autonomous') {
+        // 자율 모드는 설정된 시간(AUTONOMOUS_DURATION) 후 자동으로 다음 단계로 진행
+        const timer = setTimeout(() => {
+          if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+            setCurrentStepIndex((prev) => prev + 1)
+          }
+        }, step.silenceAfter || AUTONOMOUS_DURATION)
         
         return () => {
           clearTimeout(timer)
@@ -426,7 +491,7 @@ export default function RoutinePlayContent() {
         clearTimeout(timer)
       }
     }
-  }, [currentStepIndex, voiceUrl, isAborted, isPaused, isLastStep, routineSteps.length, currentStep])
+  }, [currentStepIndex, isAborted, isPaused, isLastStep, routineSteps, voiceGuideEnabled])
 
   // 컴포넌트 마운트 시 BGM 시작
   useEffect(() => {
@@ -443,22 +508,6 @@ export default function RoutinePlayContent() {
       audioManagerRef.current?.play()
     }
   }, [isPaused, isAborted])
-
-  // 개발용 핸들러
-  const handleDevComplete = useCallback(() => {
-    router.push('/result/emotion')
-  }, [router])
-
-  const handleDevAbort = useCallback(() => {
-    router.push('/result/summary?aborted=1')
-  }, [router])
-
-  const handleTestSilence = useCallback(() => {
-    setIsSilentWaiting(true)
-    setTimeout(() => {
-      setIsSilentWaiting(false)
-    }, 3000)
-  }, [])
 
   // 로딩 중일 때 표시
   if (isLoadingVoiceGuides || isLoadingBgms) {
@@ -498,18 +547,9 @@ export default function RoutinePlayContent() {
           ref={audioManagerRef}
           bgmUrl={bgmUrl}
           voiceUrl={voiceUrl}
-          playVoice={true}
+          playVoice={voiceGuideEnabled}
           onVoiceEnded={onVoiceEnded}
         />
-
-        {/* 우측 상단: 설정 상태 표시 (dev 모드에서만 표시) */}
-        {isDevMode && (
-          <div className="absolute top-4 right-4 text-xs sm:text-sm text-gray-600 space-y-1 z-10">
-            <div>BGM: {bgmName}</div>
-            <div>현재 단계: {currentStepIndex + 1}/{routineSteps.length}</div>
-            <div>UI 단계: {uiStepIndex + 1}/5</div>
-          </div>
-        )}
 
         {/* 상단: 현재 단계명 */}
         <StepHeader
@@ -529,15 +569,6 @@ export default function RoutinePlayContent() {
         {/* 중앙: 현재 명상 문장 */}
         <div className="flex-1 flex items-center justify-center px-6 pb-32 relative">
           <MeditationText text={displayText} animate={false} />
-          
-          {/* 침묵 시간 대기 오버레이 */}
-          {isSilentWaiting && (
-            <div className="absolute inset-0 bottom-32 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10 transition-opacity duration-300 opacity-100">
-              <p className="text-white text-lg sm:text-xl font-medium">
-                잠시 집중해보세요...
-              </p>
-            </div>
-          )}
         </div>
 
         {/* 하단: 버튼 영역 */}
@@ -585,49 +616,6 @@ export default function RoutinePlayContent() {
             </div>
           )}
         </CTAContainer>
-
-        {/* 개발용 컨트롤 (프로덕션에서는 숨김) */}
-        {isDevMode && (
-          <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-50">
-            {/* 자율 모드가 아닐 때만 다음 단계 버튼 표시 */}
-            {currentStep.id !== 'autonomous' && (
-              <Button
-                onClick={handleNextStep}
-                variant="secondary"
-                size="sm"
-                className="text-xs opacity-70 hover:opacity-100"
-                disabled={routineSteps.length === 0 || currentStepIndex >= routineSteps.length - 1}
-              >
-                DEV: 다음 단계로 ({currentStepIndex + 1}/{routineSteps.length || 0})
-              </Button>
-            )}
-            <Button
-              onClick={handleTestSilence}
-              variant="secondary"
-              size="sm"
-              className="text-xs opacity-70 hover:opacity-100"
-              disabled={isSilentWaiting}
-            >
-              DEV: 침묵 시간 테스트
-            </Button>
-            <Button
-              onClick={handleDevComplete}
-              variant="secondary"
-              size="sm"
-              className="text-xs opacity-70 hover:opacity-100"
-            >
-              DEV: 루틴 완료
-            </Button>
-            <Button
-              onClick={handleDevAbort}
-              variant="secondary"
-              size="sm"
-              className="text-xs opacity-70 hover:opacity-100"
-            >
-              DEV: 중단
-            </Button>
-          </div>
-        )}
       </div>
     </AppLayout>
   )

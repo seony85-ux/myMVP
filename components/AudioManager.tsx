@@ -30,27 +30,32 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
       bgmAudio.loop = true
       bgmAudio.volume = 0.7 // BGM 볼륨 조절 (선택사항)
 
-      bgmAudio.addEventListener('error', (e) => {
+      // 이벤트 핸들러 함수 정의
+      const handleError = (e: Event) => {
         const error = new Error(`BGM 재생 실패: ${bgmUrl}`)
         onError?.(error)
         console.error('BGM 재생 오류:', error)
-      })
+      }
 
-      bgmAudio.addEventListener('play', () => {
+      const handlePlay = () => {
         setIsPlaying(true)
-      })
+      }
 
-      bgmAudio.addEventListener('pause', () => {
+      const handlePause = () => {
         setIsPlaying(false)
-      })
+      }
+
+      bgmAudio.addEventListener('error', handleError)
+      bgmAudio.addEventListener('play', handlePlay)
+      bgmAudio.addEventListener('pause', handlePause)
 
       bgmAudioRef.current = bgmAudio
 
       return () => {
         bgmAudio.pause()
-        bgmAudio.removeEventListener('error', () => {})
-        bgmAudio.removeEventListener('play', () => {})
-        bgmAudio.removeEventListener('pause', () => {})
+        bgmAudio.removeEventListener('error', handleError)
+        bgmAudio.removeEventListener('play', handlePlay)
+        bgmAudio.removeEventListener('pause', handlePause)
         bgmAudioRef.current = null
       }
     }, [bgmUrl, onError])
@@ -62,23 +67,27 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
       const voiceAudio = new Audio(voiceUrl)
       voiceAudio.volume = 1.0 // 음성 가이드는 전체 볼륨
 
-      voiceAudio.addEventListener('error', (e) => {
+      // 이벤트 핸들러 함수 정의
+      const handleError = (e: Event) => {
         const error = new Error(`음성 가이드 재생 실패: ${voiceUrl}`)
         onError?.(error)
         console.error('음성 가이드 재생 오류:', error)
-      })
+      }
 
-      voiceAudio.addEventListener('ended', () => {
+      const handleEnded = () => {
         // 음성 가이드 재생 완료 시 콜백 호출
         onVoiceEnded?.()
-      })
+      }
+
+      voiceAudio.addEventListener('error', handleError)
+      voiceAudio.addEventListener('ended', handleEnded)
 
       voiceAudioRef.current = voiceAudio
 
       return () => {
         voiceAudio.pause()
-        voiceAudio.removeEventListener('error', () => {})
-        voiceAudio.removeEventListener('ended', () => {})
+        voiceAudio.removeEventListener('error', handleError)
+        voiceAudio.removeEventListener('ended', handleEnded)
         voiceAudioRef.current = null
       }
     }, [voiceUrl, onError, onVoiceEnded])

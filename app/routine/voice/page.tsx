@@ -15,7 +15,7 @@ export default function VoiceGuidePage() {
   const setVoiceGuideEnabled = useSessionStore((state) => state.setVoiceGuideEnabled)
 
   const handleStart = () => {
-    router.push('/routine/play?dev=1')
+    router.push('/routine/play')
   }
 
   return (

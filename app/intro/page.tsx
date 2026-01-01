@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
@@ -30,11 +31,13 @@ export default function IntroPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
           <div className="flex flex-col items-center space-y-8 w-full max-w-sm">
             {/* 원형 이미지 영역 */}
-            <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg">
-              <img
+            <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg relative">
+              <Image
                 src="/images/mainimage.webp"
                 alt="메인 이미지"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                priority
               />
             </div>
             {/* 안내 문구 */}

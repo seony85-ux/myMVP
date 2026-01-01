@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import AppLayout from '@/components/AppLayout'
 import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
@@ -28,11 +29,13 @@ export default function ThankYouPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 sm:py-8 pb-24 sm:pb-28">
           <div className="flex flex-col items-center space-y-5 sm:space-y-6 md:space-y-8 w-full max-w-md">
             {/* 이미지 영역 */}
-            <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg flex-shrink-0">
-              <img
+            <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg flex-shrink-0 relative">
+              <Image
                 src="/images/lastone.webp"
                 alt="감사 이미지"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                priority
               />
             </div>
 
