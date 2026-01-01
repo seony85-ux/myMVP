@@ -7,6 +7,7 @@ export interface AudioManagerProps {
   voiceUrl?: string
   playVoice?: boolean
   onError?: (error: Error) => void
+  onVoiceEnded?: () => void
 }
 
 export interface AudioManagerRef {
@@ -16,7 +17,7 @@ export interface AudioManagerRef {
 }
 
 const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
-  ({ bgmUrl, voiceUrl, playVoice = false, onError }, ref) => {
+  ({ bgmUrl, voiceUrl, playVoice = false, onError, onVoiceEnded }, ref) => {
     const bgmAudioRef = useRef<HTMLAudioElement | null>(null)
     const voiceAudioRef = useRef<HTMLAudioElement | null>(null)
     const [isPlaying, setIsPlaying] = useState(false)
@@ -68,7 +69,8 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
       })
 
       voiceAudio.addEventListener('ended', () => {
-        // 음성 가이드 재생 완료 시 별도 처리 필요 없음 (자동 정지)
+        // 음성 가이드 재생 완료 시 콜백 호출
+        onVoiceEnded?.()
       })
 
       voiceAudioRef.current = voiceAudio
@@ -79,7 +81,7 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
         voiceAudio.removeEventListener('ended', () => {})
         voiceAudioRef.current = null
       }
-    }, [voiceUrl, onError])
+    }, [voiceUrl, onError, onVoiceEnded])
 
     // 외부에서 호출할 수 있는 메서드 노출
     useImperativeHandle(ref, () => ({
