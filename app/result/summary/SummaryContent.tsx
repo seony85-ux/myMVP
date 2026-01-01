@@ -72,15 +72,18 @@ export default function SummaryContent() {
 
       // 세션 데이터 저장
       await createSession(sessionData)
-
-      // 성공 시 감사 페이지로 이동
-      router.push('/thank-you')
     } catch (error) {
-      // 에러 발생 시 콘솔에 출력
+      // 에러 발생 시 상세 정보 출력
       console.error('세션 저장 실패:', error)
-      setIsSaving(false)
+      if (error instanceof Error) {
+        console.error('에러 메시지:', error.message)
+        console.error('에러 스택:', error.stack)
+      }
       // 에러가 발생해도 사용자에게는 계속 진행할 수 있도록 처리
       // 필요시 에러 메시지를 표시하거나 재시도 로직 추가 가능
+    } finally {
+      // 성공/실패 여부와 관계없이 감사 페이지로 이동
+      router.push('/thank-you')
     }
   }
 

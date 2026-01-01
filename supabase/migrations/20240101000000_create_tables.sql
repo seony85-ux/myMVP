@@ -8,11 +8,13 @@ CREATE TABLE IF NOT EXISTS bgms (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Create meditation_texts table
-CREATE TABLE IF NOT EXISTS meditation_texts (
+-- Create voice_guides table
+-- 루틴 단계별 음성 가이드 파일 정보를 저장하는 테이블
+CREATE TABLE IF NOT EXISTS voice_guides (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    step_name VARCHAR NOT NULL,
-    text TEXT NOT NULL,
+    step_id VARCHAR NOT NULL,
+    audio_url TEXT NOT NULL,
+    silence_after INTEGER DEFAULT 0,
     order_index INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -38,12 +40,18 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_created_at ON sessions(created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status);
 CREATE INDEX IF NOT EXISTS idx_sessions_bgm_id ON sessions(bgm_id);
-CREATE INDEX IF NOT EXISTS idx_meditation_texts_order_index ON meditation_texts(order_index);
+CREATE INDEX IF NOT EXISTS idx_voice_guides_order_index ON voice_guides(order_index);
+CREATE INDEX IF NOT EXISTS idx_voice_guides_step_id ON voice_guides(step_id);
 
 -- Add comments for documentation
 COMMENT ON TABLE bgms IS 'BGM 정보를 저장하는 테이블';
-COMMENT ON TABLE meditation_texts IS '명상 텍스트 단계별 정보를 저장하는 테이블';
+COMMENT ON TABLE voice_guides IS '루틴 단계별 음성 가이드 파일 정보를 저장하는 테이블';
 COMMENT ON TABLE sessions IS '명상 세션 정보를 저장하는 테이블';
+
+COMMENT ON COLUMN voice_guides.step_id IS '루틴 단계 ID (예: intro1, toner2 등)';
+COMMENT ON COLUMN voice_guides.audio_url IS 'Supabase Storage에 저장된 음성 파일 URL';
+COMMENT ON COLUMN voice_guides.silence_after IS '음성 재생 후 침묵 시간 (밀리초)';
+COMMENT ON COLUMN voice_guides.order_index IS '루틴 재생 순서 (낮을수록 먼저 재생)';
 
 COMMENT ON COLUMN sessions.before_emotion IS '명상 전 감정 점수';
 COMMENT ON COLUMN sessions.after_emotion IS '명상 후 감정 점수';
