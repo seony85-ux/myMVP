@@ -64,6 +64,14 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
     useEffect(() => {
       if (!voiceUrl) return
 
+      // URL 유효성 검증
+      if (!voiceUrl.startsWith('https://') && !voiceUrl.startsWith('http://')) {
+        console.error('[AudioManager] 잘못된 음성 URL 형식:', voiceUrl)
+        // 에러 발생 시 즉시 onVoiceEnded 호출하여 다음 단계로 진행
+        onVoiceEnded?.()
+        return
+      }
+
       const voiceAudio = new Audio(voiceUrl)
       voiceAudio.volume = 1.0 // 음성 가이드는 전체 볼륨
 
@@ -71,7 +79,11 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
       const handleError = (e: Event) => {
         const error = new Error(`음성 가이드 재생 실패: ${voiceUrl}`)
         onError?.(error)
-        console.error('음성 가이드 재생 오류:', error)
+        console.error('[AudioManager] 음성 가이드 재생 오류:', error)
+        
+        // 에러 발생 시 onVoiceEnded를 호출하여 다음 단계로 진행 (fallback)
+        // 이렇게 하면 음성 파일이 로드되지 않아도 루틴이 계속 진행됩니다
+        onVoiceEnded?.()
       }
 
       const handleEnded = () => {
@@ -112,7 +124,10 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
             await voiceAudioRef.current.play().catch((error) => {
               const err = new Error(`음성 가이드 재생 실패: ${error.message}`)
               onError?.(err)
-              console.error('음성 가이드 play() 오류:', error)
+              console.error('[AudioManager] 음성 가이드 play() 오류:', error)
+              
+              // 재생 실패 시 onVoiceEnded를 호출하여 다음 단계로 진행 (fallback)
+              onVoiceEnded?.()
             })
           }
         } catch (error) {

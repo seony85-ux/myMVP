@@ -109,7 +109,28 @@ export default function RoutinePlayContent() {
         }
         
         const result = await response.json()
-        setVoiceGuides(result.data || [])
+        const guides = result.data || []
+        
+        // audio_url 유효성 검증 및 로깅
+        const validatedGuides = guides.map((guide: VoiceGuideData) => {
+          const audioUrl = guide.audio_url
+          
+          // null, undefined, 빈 문자열 체크
+          if (!audioUrl || audioUrl.trim() === '') {
+            console.warn(`[RoutinePlayContent] audio_url이 비어있음: step_id=${guide.step_id}`)
+            return guide
+          }
+          
+          // URL 형식 검증
+          if (!audioUrl.startsWith('https://') && !audioUrl.startsWith('http://')) {
+            console.warn(`[RoutinePlayContent] 잘못된 URL 형식: step_id=${guide.step_id}, url=${audioUrl}`)
+            return guide
+          }
+          
+          return guide
+        })
+        
+        setVoiceGuides(validatedGuides)
       } catch (error) {
         console.error('음성 가이드 데이터 로드 실패:', error)
         // 에러 발생 시 빈 배열로 설정
