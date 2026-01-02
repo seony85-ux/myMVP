@@ -37,7 +37,7 @@ export default function BGMCardList({
             name={bgm.name}
             description={bgm.description}
             imageUrl={bgm.imageUrl}
-            selected={selectedId === bgm.id}
+            selected={bgm.id === 'none' ? selectedId === null : selectedId === bgm.id}
             onSelect={onSelect}
           />
         </div>

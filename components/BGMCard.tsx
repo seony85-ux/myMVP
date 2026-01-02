@@ -19,9 +19,18 @@ export default function BGMCard({
   selected,
   onSelect,
 }: BGMCardProps) {
+  const handleSelect = () => {
+    if (selected) {
+      onSelect(null)
+    } else {
+      // 'none' 값을 null로 변환 (Supabase 외래키 제약 조건 준수)
+      onSelect(id === 'none' ? null : id)
+    }
+  }
+
   return (
     <button
-      onClick={() => onSelect(selected ? null : id)}
+      onClick={handleSelect}
       className={`
         w-full rounded-lg overflow-hidden
         border-2 transition-all duration-200

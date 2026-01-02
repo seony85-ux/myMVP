@@ -57,10 +57,13 @@ export default function SummaryContent() {
 
     try {
       // 세션 데이터 준비
+      // bgm_id가 'none'인 경우 null로 변환 (Supabase 외래키 제약 조건 준수)
+      const normalizedBgmId = bgmId === 'none' ? null : (bgmId ?? undefined)
+      
       const sessionData = {
         before_emotion: beforeEmotion ?? undefined,
         after_emotion: afterEmotion ?? undefined,
-        bgm_id: bgmId ?? undefined,
+        bgm_id: normalizedBgmId,
         routine_mode: routineMode,
         selected_steps: selectedSteps.length > 0 ? selectedSteps : undefined,
         voice_guide_enabled: voiceGuideEnabled,

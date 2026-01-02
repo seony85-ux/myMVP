@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const sessionData: Partial<{
       before_emotion: number;
       after_emotion: number;
-      bgm_id: string;
+      bgm_id: string | null;
       routine_mode: string;
       selected_steps: string[];
       voice_guide_enabled: boolean;
@@ -37,7 +37,10 @@ export async function POST(request: NextRequest) {
     // 정의된 값만 추가
     if (body.before_emotion !== undefined) sessionData.before_emotion = body.before_emotion;
     if (body.after_emotion !== undefined) sessionData.after_emotion = body.after_emotion;
-    if (body.bgm_id !== undefined) sessionData.bgm_id = body.bgm_id;
+    // bgm_id가 'none'인 경우 null로 변환 (Supabase 외래키 제약 조건 준수)
+    if (body.bgm_id !== undefined) {
+      sessionData.bgm_id = body.bgm_id === 'none' ? null : body.bgm_id;
+    }
     if (body.routine_mode !== undefined) sessionData.routine_mode = body.routine_mode;
     if (body.selected_steps !== undefined) sessionData.selected_steps = body.selected_steps;
     if (body.voice_guide_enabled !== undefined) sessionData.voice_guide_enabled = body.voice_guide_enabled;
