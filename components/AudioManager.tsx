@@ -120,7 +120,10 @@ const AudioManager = forwardRef<AudioManagerRef, AudioManagerProps>(
           // 음성 가이드 재생 (playVoice가 true일 때만)
           if (playVoice && voiceAudioRef.current) {
             // 음성 가이드는 처음부터 재생 (이전 재생이 끝났다면 처음부터)
-            voiceAudioRef.current.currentTime = 0
+            // 단, 이미 재생 중이면 currentTime을 리셋하지 않음 (반복 방지)
+            if (voiceAudioRef.current.paused || voiceAudioRef.current.ended) {
+              voiceAudioRef.current.currentTime = 0
+            }
             await voiceAudioRef.current.play().catch((error) => {
               const err = new Error(`음성 가이드 재생 실패: ${error.message}`)
               onError?.(err)

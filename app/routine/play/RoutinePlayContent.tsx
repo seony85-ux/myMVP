@@ -490,16 +490,6 @@ export default function RoutinePlayContent() {
     }
   }, [currentStepIndex, routineSteps, ux])
   
-  // 중단/일시중지 시 타이머 정리
-  useEffect(() => {
-    if (isAborted || isPaused) {
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current)
-        silenceTimerRef.current = null
-      }
-    }
-  }, [isAborted, isPaused])
-  
   /*
    * extra_mindfulness phase
    * - finish1 오디오 타이밍과 분리된 UI 전용 타이머
@@ -508,9 +498,29 @@ export default function RoutinePlayContent() {
    */
   const extraMindfulnessTimerRef = useRef<NodeJS.Timeout | null>(null)
   
+  // 중단/일시중지 시 타이머 정리
+  useEffect(() => {
+    if (isAborted || isPaused) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = null
+      }
+      // extra_mindfulness 타이머도 정리
+      if (extraMindfulnessTimerRef.current) {
+        clearTimeout(extraMindfulnessTimerRef.current)
+        extraMindfulnessTimerRef.current = null
+      }
+    }
+  }, [isAborted, isPaused])
+  
   useEffect(() => {
     if (phase === 'extra_mindfulness') {
       // extra_mindfulness phase 전용 타이머 시작
+      // 일시중지 중이면 타이머를 시작하지 않음
+      if (isPaused) {
+        return
+      }
+      
       extraMindfulnessTimerRef.current = setTimeout(() => {
         extraMindfulnessTimerRef.current = null
         setPhase('finish2')
@@ -527,7 +537,7 @@ export default function RoutinePlayContent() {
         }
       }
     }
-  }, [phase, ux.extraMindfulnessSeconds, routineSteps.length, currentStepIndex])
+  }, [phase, ux.extraMindfulnessSeconds, routineSteps.length, currentStepIndex, isPaused])
   
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -549,13 +559,15 @@ export default function RoutinePlayContent() {
       return
     }
 
-    if (isLastStep) {
-      return
-    }
-
     // 현재 단계 정보 가져오기
     const step = routineSteps[currentStepIndex]
     if (!step) return
+    
+    // finish2는 마지막 단계이지만 음성을 재생해야 하므로 isLastStep 체크를 건너뜀
+    // finish2 이후에는 재생하지 않음
+    if (step.id !== 'finish2' && isLastStep) {
+      return
+    }
 
     // 음성 재생 시작
     if (step.audio_url) {
@@ -565,8 +577,10 @@ export default function RoutinePlayContent() {
       const timers: NodeJS.Timeout[] = []
       
       // intro1일 경우 2초 지연 후 재생
+      // 이때 BGM도 함께 재생됨 (BGM은 이미 재생 중일 수 있지만, play() 호출 시 다시 재생됨)
       if (step.id === 'intro1') {
         const playTimer = setTimeout(() => {
+          // 2초 지연 후 음성 가이드와 BGM을 함께 재생
           audioManagerRef.current?.play()
         }, 2000)
         timers.push(playTimer)
@@ -636,18 +650,30 @@ export default function RoutinePlayContent() {
   // 컴포넌트 마운트 시 BGM 시작
   useEffect(() => {
     if (bgmUrl && !isAborted && !isPaused) {
-      audioManagerRef.current?.play()
+      // intro1인 경우 음성 가이드는 2초 지연 후 재생되므로,
+      // BGM만 먼저 재생하기 위해 playVoice를 false로 설정하고 play() 호출
+      // 하지만 현재 AudioManager 구조상 BGM과 음성 가이드를 분리할 수 없으므로,
+      // intro1일 때는 BGM 시작 시 play()를 호출하지 않고,
+      // "단계 변경 시 음성 재생 시작" useEffect에서 2초 지연 후 BGM과 음성 가이드를 함께 재생
+      // 다른 단계에서는 BGM을 먼저 재생
+      if (currentStep.id !== 'intro1' || currentStepIndex > 0) {
+        audioManagerRef.current?.play()
+      }
     }
-  }, [bgmUrl, isAborted, isPaused])
+  }, [bgmUrl, isAborted, isPaused, currentStep.id, currentStepIndex])
 
   // 일시중지/재개 시 오디오 제어
   useEffect(() => {
     if (isPaused) {
       audioManagerRef.current?.pause()
     } else if (!isAborted) {
-      audioManagerRef.current?.play()
+      // intro1인 경우 2초 지연이 필요하므로 여기서는 재생하지 않음
+      // intro1의 재생은 "단계 변경 시 음성 재생 시작" useEffect에서 처리됨
+      if (currentStep.id !== 'intro1') {
+        audioManagerRef.current?.play()
+      }
     }
-  }, [isPaused, isAborted])
+  }, [isPaused, isAborted, currentStep.id])
 
   // 로딩 중일 때 표시
   if (isLoadingVoiceGuides || isLoadingBgms) {
@@ -726,10 +752,7 @@ export default function RoutinePlayContent() {
 
         {/* 하단: 버튼 영역 */}
         <CTAContainer>
-          {phase === 'extra_mindfulness' ? (
-            // extra_mindfulness phase: 버튼 없음 (자동으로 finish2로 넘어감)
-            null
-          ) : isLastStep ? (
+          {isLastStep && phase !== 'extra_mindfulness' ? (
             // 마지막 단계: 끝내기 버튼
             <Button
               onClick={handleComplete}
