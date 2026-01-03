@@ -215,10 +215,10 @@ export default function RoutinePlayContent() {
         }
         
         return {
-          id: guide.step_id,
+        id: guide.step_id,
           text,
-          audio_url: guide.audio_url,
-          silenceAfter: guide.silence_after,
+        audio_url: guide.audio_url,
+        silenceAfter: guide.silence_after,
         }
       })
       
@@ -272,10 +272,10 @@ export default function RoutinePlayContent() {
       }
       
       return {
-        id: guide.step_id,
+      id: guide.step_id,
         text,
-        audio_url: guide.audio_url,
-        silenceAfter: guide.silence_after,
+      audio_url: guide.audio_url,
+      silenceAfter: guide.silence_after,
       }
     })
   }, [voiceGuides, routineMode, selectedSteps, ux])
@@ -319,19 +319,22 @@ export default function RoutinePlayContent() {
     if (routineMode === 'basic') {
       return ['시작', '자율', '마무리']
     } else {
-      // detailed 모드: selectedSteps 기반으로 동적 생성
+      // detailed 모드: 항상 (토너, 에센스, 크림) 순서로 표시하되, 선택된 것만 포함
       const stepLabels: Record<string, string> = {
         'toner': '토너',
         'essence': '에센스',
         'cream': '크림',
       }
       
+      // 고정된 순서: 토너, 에센스, 크림
+      const fixedOrder: string[] = ['toner', 'essence', 'cream']
+      
       // 항상 시작과 마무리 포함
       const names: string[] = ['시작']
       
-      // selectedSteps 순서대로 추가
-      selectedSteps.forEach((step) => {
-        if (stepLabels[step]) {
+      // fixedOrder 순서대로 선택된 단계만 추가
+      fixedOrder.forEach((step) => {
+        if (selectedSteps.includes(step) && stepLabels[step]) {
           names.push(stepLabels[step])
         }
       })
@@ -374,10 +377,36 @@ export default function RoutinePlayContent() {
       }
       
       // 중간 단계들: intro 다음부터 finish 전까지
-      // intro는 인덱스 0-1 (2개), 각 선택된 단계는 2개씩
-      // (currentStepIndex - 2) / 2 + 1 = UI 인덱스
-      const middleStepIndex = Math.floor((currentStepIndex - 2) / 2) + 1
-      return Math.min(middleStepIndex, stepUiNames.length - 1)
+      // step_id를 기반으로 어떤 단계인지 판단
+      // 고정된 순서: toner, essence, cream
+      const stepType = currentStep.id.replace(/[12]$/, '') // 'toner1' -> 'toner', 'essence2' -> 'essence'
+      const fixedOrder: string[] = ['toner', 'essence', 'cream']
+      const stepTypeIndex = fixedOrder.indexOf(stepType)
+      
+      if (stepTypeIndex === -1) {
+        // 알 수 없는 단계는 기본 계산 사용
+        const middleStepIndex = Math.floor((currentStepIndex - 2) / 2) + 1
+        return Math.min(middleStepIndex, stepUiNames.length - 1)
+      }
+      
+      // stepUiNames에서 해당 단계의 인덱스 찾기
+      // stepUiNames: ['시작', ...선택된단계들(고정순서), '마무리']
+      // fixedOrder 순서대로 선택된 단계만 stepUiNames에 포함되어 있음
+      let uiIndex = 1 // '시작' 다음부터
+      for (let i = 0; i < stepTypeIndex; i++) {
+        const step = fixedOrder[i]
+        if (selectedSteps.includes(step)) {
+          uiIndex++
+        }
+      }
+      
+      // 현재 stepType이 선택되었는지 확인
+      if (selectedSteps.includes(stepType)) {
+        return uiIndex
+      }
+      
+      // 선택되지 않은 단계인 경우 (이론적으로는 발생하지 않아야 함)
+      return Math.min(uiIndex, stepUiNames.length - 1)
     }
   }, [currentStepIndex, routineMode, routineSteps, stepUiNames.length])
 
@@ -473,8 +502,8 @@ export default function RoutinePlayContent() {
         if (step.id === 'finish1') {
           handleAfterFinish1()
         } else {
-          if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
-            setCurrentStepIndex((prev) => prev + 1)
+        if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+          setCurrentStepIndex((prev) => prev + 1)
           }
         }
       }, silenceAfter)
@@ -483,9 +512,9 @@ export default function RoutinePlayContent() {
       if (step.id === 'finish1') {
         handleAfterFinish1()
       } else {
-        if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
-          setCurrentStepIndex((prev) => prev + 1)
-        }
+      if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+        setCurrentStepIndex((prev) => prev + 1)
+      }
       }
     }
   }, [currentStepIndex, routineSteps, ux])
@@ -605,8 +634,8 @@ export default function RoutinePlayContent() {
               }
             }
           } else {
-            if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
-              setCurrentStepIndex((prev) => prev + 1)
+          if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+            setCurrentStepIndex((prev) => prev + 1)
             }
           }
         }, waitTime)
@@ -657,7 +686,7 @@ export default function RoutinePlayContent() {
       // "단계 변경 시 음성 재생 시작" useEffect에서 2초 지연 후 BGM과 음성 가이드를 함께 재생
       // 다른 단계에서는 BGM을 먼저 재생
       if (currentStep.id !== 'intro1' || currentStepIndex > 0) {
-        audioManagerRef.current?.play()
+      audioManagerRef.current?.play()
       }
     }
   }, [bgmUrl, isAborted, isPaused, currentStep.id, currentStepIndex])
@@ -670,7 +699,7 @@ export default function RoutinePlayContent() {
       // intro1인 경우 2초 지연이 필요하므로 여기서는 재생하지 않음
       // intro1의 재생은 "단계 변경 시 음성 재생 시작" useEffect에서 처리됨
       if (currentStep.id !== 'intro1') {
-        audioManagerRef.current?.play()
+      audioManagerRef.current?.play()
       }
     }
   }, [isPaused, isAborted, currentStep.id])
@@ -746,7 +775,7 @@ export default function RoutinePlayContent() {
             </div>
           ) : (
             // finish1_audio 또는 finish2 phase UI
-            <MeditationText text={displayText} animate={false} />
+          <MeditationText text={displayText} animate={false} />
           )}
         </div>
 
