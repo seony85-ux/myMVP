@@ -4,7 +4,7 @@
 export interface SessionData {
   before_emotion?: number;
   after_emotion?: number;
-  bgm_id?: string;
+  bgm_id?: string | null;
   routine_mode?: string;
   selected_steps?: string[];
   voice_guide_enabled?: boolean;
