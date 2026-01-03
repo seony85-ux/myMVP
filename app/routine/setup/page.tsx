@@ -24,11 +24,11 @@ export default function RoutineSetupPage() {
   const router = useRouter()
 
   // Zustand 스토어에서 상태 가져오기
-  const emotionScore = useSessionStore((state) => state.emotionScore)
+  const emotionLevel = useSessionStore((state) => state.emotionLevel)
   const bgmId = useSessionStore((state) => state.bgmId)
   const routineMode = useSessionStore((state) => state.routineMode)
   const selectedSteps = useSessionStore((state) => state.selectedSteps)
-  const setEmotionScore = useSessionStore((state) => state.setEmotionScore)
+  const setEmotionLevel = useSessionStore((state) => state.setEmotionLevel)
   const setBgmId = useSessionStore((state) => state.setBgmId)
   const setRoutineMode = useSessionStore((state) => state.setRoutineMode)
   const setSelectedSteps = useSessionStore((state) => state.setSelectedSteps)
@@ -59,7 +59,7 @@ export default function RoutineSetupPage() {
   }
 
   const handleEmotionChange = (score: number | null) => {
-    setEmotionScore(score)
+    setEmotionLevel(score)
     // 감정 점수를 beforeEmotion에도 저장
     if (score !== null) {
       setBeforeEmotion(score)
@@ -94,7 +94,7 @@ export default function RoutineSetupPage() {
         <SectionBlock>
           <SectionHeader title="지금 기분은 어떤가요?" />
           <div className="pt-2">
-            <EmotionSelector value={emotionScore} onChange={handleEmotionChange} showLabels />
+            <EmotionSelector value={emotionLevel} onChange={handleEmotionChange} showLabels />
           </div>
         </SectionBlock>
 

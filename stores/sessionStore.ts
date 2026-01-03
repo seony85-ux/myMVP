@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 
 interface SessionState {
   // 루틴 설정 관련
-  emotionScore: number | null
+  emotionLevel: number | null
   bgmId: string | null
   routineMode: 'basic' | 'detailed'
   selectedSteps: string[]
@@ -18,7 +18,7 @@ interface SessionState {
   reuseIntention: boolean | null
   
   // Actions
-  setEmotionScore: (score: number | null) => void
+  setEmotionLevel: (score: number | null) => void
   setBgmId: (id: string | null) => void
   setRoutineMode: (mode: 'basic' | 'detailed') => void
   setSelectedSteps: (steps: string[]) => void
@@ -31,7 +31,7 @@ interface SessionState {
 }
 
 const initialState = {
-  emotionScore: null,
+  emotionLevel: null,
   bgmId: null,
   routineMode: 'basic' as const,
   selectedSteps: [],
@@ -47,7 +47,7 @@ export const useSessionStore = create<SessionState>()(
     (set) => ({
       ...initialState,
       
-      setEmotionScore: (score) => set({ emotionScore: score }),
+      setEmotionLevel: (score) => set({ emotionLevel: score }),
       setBgmId: (id) => set({ bgmId: id }),
       setRoutineMode: (mode) => set({ routineMode: mode }),
       setSelectedSteps: (steps) => set({ selectedSteps: steps }),

@@ -10,6 +10,8 @@ import MeditationText from '@/components/MeditationText'
 import ProgressIndicator from '@/components/ProgressIndicator'
 import AudioManager, { AudioManagerRef } from '@/components/AudioManager'
 import { useSessionStore } from '@/stores/sessionStore'
+import { emotionStateMap, type EmotionLevel } from '@/constants/emotionState'
+import { emotionUXCopy } from '@/constants/emotionUXCopy'
 
 
 // 루틴 단계 타입 정의
@@ -38,8 +40,10 @@ interface BgmData {
 }
 
 // 텍스트는 하드코딩 유지 (Supabase에서 관리하지 않음)
-const STEP_TEXTS: Record<string, string> = {
-  intro1: '지금 이 순간, 나에게 집중해보세요.',
+// 주의: STEP_TEXTS는 컴포넌트 외부에 정의되어 있어 emotionLevel에 따라 동적으로 변경할 수 없습니다.
+// 따라서 routineSteps 생성 시점에 동적으로 텍스트를 결정해야 합니다.
+const STEP_TEXTS_BASE: Record<string, string> = {
+  intro1: '지금 이 순간, 나에게 집중해보세요.', // 기본값 (동적으로 교체됨)
   intro2: '천천히 숨을 들이쉬고 내쉬어보세요.',
   toner1: '지금 이 순간, 토너에 집중해보세요.',
   toner2: '토너를 부드럽게 펴발라주세요.',
@@ -47,7 +51,7 @@ const STEP_TEXTS: Record<string, string> = {
   essence2: '에센스를 가볍게 두드려 흡수시켜주세요.',
   cream1: '지금 이 순간, 크림에 집중해보세요.',
   cream2: '크림을 부드럽게 마사지하며 발라주세요.',
-  finish1: '오늘 하루도 수고하셨어요.',
+  finish1: '오늘 하루도 수고하셨어요.', // 기본값 (동적으로 교체됨)
   finish2: '당신의 피부가 건강하게 빛나기를 바랍니다.',
 }
 
@@ -66,13 +70,30 @@ export default function RoutinePlayContent() {
   const router = useRouter()
   
   // Zustand 스토어에서 상태 가져오기
-  const bgmId = useSessionStore((state) => state.bgmId)
-  const routineMode = useSessionStore((state) => state.routineMode)
-  const voiceGuideEnabled = useSessionStore((state) => state.voiceGuideEnabled)
-  const selectedSteps = useSessionStore((state) => state.selectedSteps)
+  const session = useSessionStore()
+  const emotionLevelRaw = session.emotionLevel
+  const bgmId = session.bgmId
+  const routineMode = session.routineMode
+  const voiceGuideEnabled = session.voiceGuideEnabled
+  const selectedSteps = session.selectedSteps
+
+  // emotionLevel을 emotionState로 변환하고 UX 복사본 가져오기
+  // 범위 밖이거나 undefined면 neutral에 해당하는 값으로 fallback
+  const emotionLevel: EmotionLevel = 
+    (emotionLevelRaw !== null && 
+     emotionLevelRaw >= 1 && 
+     emotionLevelRaw <= 5) 
+      ? (emotionLevelRaw as EmotionLevel) 
+      : 3 // neutral에 해당하는 값으로 fallback
+  const emotionState = emotionStateMap[emotionLevel]
+  const ux = emotionUXCopy[emotionState]
 
   // 현재 진행 중인 단계 인덱스 관리 (초기값: 0)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  
+  // finish1 이후 phase 관리
+  type Phase = 'finish1_audio' | 'extra_mindfulness' | 'finish2'
+  const [phase, setPhase] = useState<Phase>('finish1_audio')
   
   // Supabase에서 가져온 음성 가이드 데이터
   const [voiceGuides, setVoiceGuides] = useState<VoiceGuideData[]>([])
@@ -184,12 +205,22 @@ export default function RoutinePlayContent() {
       )
       
       // intro2와 finish1 사이에 자율 단계 추가
-      const steps = filteredGuides.map((guide) => ({
-        id: guide.step_id,
-        text: STEP_TEXTS[guide.step_id] || '',
-        audio_url: guide.audio_url,
-        silenceAfter: guide.silence_after,
-      }))
+      const steps = filteredGuides.map((guide) => {
+        // intro1과 finish1은 emotionState에 따라 동적으로 텍스트 결정
+        let text = STEP_TEXTS_BASE[guide.step_id] || ''
+        if (guide.step_id === 'intro1') {
+          text = ux.startMessage
+        } else if (guide.step_id === 'finish1') {
+          text = ux.endMessage
+        }
+        
+        return {
+          id: guide.step_id,
+          text,
+          audio_url: guide.audio_url,
+          silenceAfter: guide.silence_after,
+        }
+      })
       
       // intro2 다음에 자율 단계 추가
       const intro2Index = steps.findIndex((s) => s.id === 'intro2')
@@ -231,13 +262,23 @@ export default function RoutinePlayContent() {
       )
     }
 
-    return filteredGuides.map((guide) => ({
-      id: guide.step_id,
-      text: STEP_TEXTS[guide.step_id] || '',
-      audio_url: guide.audio_url,
-      silenceAfter: guide.silence_after,
-    }))
-  }, [voiceGuides, routineMode, selectedSteps])
+    return filteredGuides.map((guide) => {
+      // intro1과 finish1은 emotionState에 따라 동적으로 텍스트 결정
+      let text = STEP_TEXTS_BASE[guide.step_id] || ''
+      if (guide.step_id === 'intro1') {
+        text = ux.startMessage
+      } else if (guide.step_id === 'finish1') {
+        text = ux.endMessage
+      }
+      
+      return {
+        id: guide.step_id,
+        text,
+        audio_url: guide.audio_url,
+        silenceAfter: guide.silence_after,
+      }
+    })
+  }, [voiceGuides, routineMode, selectedSteps, ux])
 
   // 현재 단계
   const currentStep = useMemo(() => {
@@ -246,6 +287,18 @@ export default function RoutinePlayContent() {
       return { id: 'intro1', text: '', audio_url: '', silenceAfter: 0 }
     }
     return routineSteps[currentStepIndex] || routineSteps[0]
+  }, [currentStepIndex, routineSteps])
+  
+  // currentStepIndex가 변경될 때 phase 초기화 (finish1이 아닌 경우)
+  useEffect(() => {
+    const step = routineSteps[currentStepIndex]
+    if (step && step.id === 'finish1') {
+      setPhase('finish1_audio')
+    } else if (step && step.id === 'finish2') {
+      setPhase('finish2')
+    } else if (step && step.id !== 'finish1' && step.id !== 'finish2') {
+      setPhase('finish1_audio') // finish1/finish2가 아닌 경우 초기화
+    }
   }, [currentStepIndex, routineSteps])
 
   // BGM URL (Supabase에서 가져온 데이터 사용)
@@ -339,10 +392,13 @@ export default function RoutinePlayContent() {
   }, [uiStepIndex])
 
 
-  // 표시할 메시지 텍스트
+  // 표시할 메시지 텍스트 (phase에 따라 분기)
   const displayText = useMemo(() => {
+    if (phase === 'extra_mindfulness') {
+      return '' // extra_mindfulness는 별도 UI로 렌더링
+    }
     return currentStep.text
-  }, [currentStep.text])
+  }, [currentStep.text, phase])
 
   // 마지막 단계인지 확인
   const isLastStep = useMemo(() => {
@@ -396,21 +452,43 @@ export default function RoutinePlayContent() {
       silenceTimerRef.current = null
     }
     
-    if (silenceAfter > 0) {
-      // 침묵 시간 후 다음 단계로 이동
-      silenceTimerRef.current = setTimeout(() => {
-        silenceTimerRef.current = null
+    // finish1 오디오 + silence after가 모두 끝났을 때 phase 분기
+    const handleAfterFinish1 = () => {
+      if (ux.extraMindfulnessSeconds > 0) {
+        setPhase('extra_mindfulness')
+      } else {
+        setPhase('finish2')
+        // finish2로 바로 이동
         if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
           setCurrentStepIndex((prev) => prev + 1)
         }
-      }, silenceAfter)
-    } else {
-      // 침묵 시간이 없으면 즉시 다음 단계로 이동
-      if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
-        setCurrentStepIndex((prev) => prev + 1)
       }
     }
-  }, [currentStepIndex, routineSteps])
+    
+    if (silenceAfter > 0) {
+      // 침묵 시간 후 다음 단계로 이동 또는 phase 분기
+      silenceTimerRef.current = setTimeout(() => {
+        silenceTimerRef.current = null
+        // finish1인 경우 phase 분기, 그 외는 다음 단계로 이동
+        if (step.id === 'finish1') {
+          handleAfterFinish1()
+        } else {
+          if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+            setCurrentStepIndex((prev) => prev + 1)
+          }
+        }
+      }, silenceAfter)
+    } else {
+      // 침묵 시간이 없으면 즉시 다음 단계로 이동 또는 phase 분기
+      if (step.id === 'finish1') {
+        handleAfterFinish1()
+      } else {
+        if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+          setCurrentStepIndex((prev) => prev + 1)
+        }
+      }
+    }
+  }, [currentStepIndex, routineSteps, ux])
   
   // 중단/일시중지 시 타이머 정리
   useEffect(() => {
@@ -421,6 +499,35 @@ export default function RoutinePlayContent() {
       }
     }
   }, [isAborted, isPaused])
+  
+  /*
+   * extra_mindfulness phase
+   * - finish1 오디오 타이밍과 분리된 UI 전용 타이머
+   * - 기존 audio/silence 로직을 절대 변경하지 않는다
+   * - UX적으로는 finish1의 확장 구간으로 인식되어야 함
+   */
+  const extraMindfulnessTimerRef = useRef<NodeJS.Timeout | null>(null)
+  
+  useEffect(() => {
+    if (phase === 'extra_mindfulness') {
+      // extra_mindfulness phase 전용 타이머 시작
+      extraMindfulnessTimerRef.current = setTimeout(() => {
+        extraMindfulnessTimerRef.current = null
+        setPhase('finish2')
+        // finish2로 이동
+        if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+          setCurrentStepIndex((prev) => prev + 1)
+        }
+      }, ux.extraMindfulnessSeconds * 1000)
+      
+      return () => {
+        if (extraMindfulnessTimerRef.current) {
+          clearTimeout(extraMindfulnessTimerRef.current)
+          extraMindfulnessTimerRef.current = null
+        }
+      }
+    }
+  }, [phase, ux.extraMindfulnessSeconds, routineSteps.length, currentStepIndex])
   
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -473,8 +580,20 @@ export default function RoutinePlayContent() {
         // 음성 off일 때는 기본 대기 시간(3초) + 침묵 시간 후 다음 단계로 진행
         const waitTime = 3000 + (step.silenceAfter || 0)
         const waitTimer = setTimeout(() => {
-          if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
-            setCurrentStepIndex((prev) => prev + 1)
+          // finish1인 경우 phase 분기 처리
+          if (step.id === 'finish1') {
+            if (ux.extraMindfulnessSeconds > 0) {
+              setPhase('extra_mindfulness')
+            } else {
+              setPhase('finish2')
+              if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+                setCurrentStepIndex((prev) => prev + 1)
+              }
+            }
+          } else {
+            if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+              setCurrentStepIndex((prev) => prev + 1)
+            }
           }
         }, waitTime)
         timers.push(waitTimer)
@@ -587,14 +706,30 @@ export default function RoutinePlayContent() {
           variant="dots"
         />
 
-        {/* 중앙: 현재 명상 문장 */}
+        {/* 중앙: 현재 명상 문장 또는 extra_mindfulness UI */}
         <div className="flex-1 flex items-center justify-center px-6 pb-32 relative">
-          <MeditationText text={displayText} animate={false} />
+          {phase === 'extra_mindfulness' ? (
+            // extra_mindfulness phase UI
+            <div className="flex flex-col items-center justify-center text-center space-y-4">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+                잠시 더 머물러요
+              </h2>
+              <p className="text-base sm:text-lg text-gray-600 max-w-md">
+                {ux.extraMindfulnessSeconds}초 동안 지금의 감각과 호흡을 이어갑니다.
+              </p>
+            </div>
+          ) : (
+            // finish1_audio 또는 finish2 phase UI
+            <MeditationText text={displayText} animate={false} />
+          )}
         </div>
 
         {/* 하단: 버튼 영역 */}
         <CTAContainer>
-          {isLastStep ? (
+          {phase === 'extra_mindfulness' ? (
+            // extra_mindfulness phase: 버튼 없음 (자동으로 finish2로 넘어감)
+            null
+          ) : isLastStep ? (
             // 마지막 단계: 끝내기 버튼
             <Button
               onClick={handleComplete}
