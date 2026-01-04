@@ -1,3 +1,10 @@
+# 프로젝트 요구사항 정의서 (PRD)
+
+> **관련 문서**: 
+> - 프런트엔드 설계: [frontend-design.md](./frontend-design.md)
+> - UI/UX 가이드: [wireframeguide2.md](./wireframeguide2.md)
+> - 텍스트 및 시간 설정: [ROUTINE_PLAY_TEXTS.md](./ROUTINE_PLAY_TEXTS.md)
+
 ## 1. 프로젝트 개요
 
 ### 1.1 프로젝트명

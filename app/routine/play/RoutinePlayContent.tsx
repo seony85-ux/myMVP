@@ -43,7 +43,7 @@ interface BgmData {
 // 주의: STEP_TEXTS는 컴포넌트 외부에 정의되어 있어 emotionLevel에 따라 동적으로 변경할 수 없습니다.
 // 따라서 routineSteps 생성 시점에 동적으로 텍스트를 결정해야 합니다.
 const STEP_TEXTS_BASE: Record<string, string> = {
-  intro1: '지금 이 순간, 나에게 집중해보세요.', // 기본값 (동적으로 교체됨)
+  // intro1과 finish1은 emotionUXCopy.ts에서 동적으로 결정되므로 여기서 제외
   intro2: '천천히 숨을 들이쉬고 내쉬어보세요.',
   toner1: '지금 이 순간, 토너에 집중해보세요.',
   toner2: '토너를 부드럽게 펴발라주세요.',
@@ -51,7 +51,6 @@ const STEP_TEXTS_BASE: Record<string, string> = {
   essence2: '에센스를 가볍게 두드려 흡수시켜주세요.',
   cream1: '지금 이 순간, 크림에 집중해보세요.',
   cream2: '크림을 부드럽게 마사지하며 발라주세요.',
-  finish1: '오늘 하루도 수고하셨어요.', // 기본값 (동적으로 교체됨)
   finish2: '당신의 피부가 건강하게 빛나기를 바랍니다.',
 }
 
