@@ -15,18 +15,18 @@ export const emotionUXCopy: Record<
   }
 > = {
   neutral: {
-    startMessage: '지금 이 순간, 나에게 집중해보세요.',
-    endMessage: '오늘 하루도 수고하셨어요.',
+    startMessage: '지금 그대로, 이 시간을 시작합니다.',
+    endMessage: '움직임을 멈추고, 이 상태를 잠시 유지합니다.',
     extraMindfulnessSeconds: 30,
   },
   bad: {
-    startMessage: '임시 문구',
-    endMessage: '임시 문구',
+    startMessage: '지금은 편안하지 않아도 괜찮습니다. 이 상태로 시작합니다.',
+    endMessage: '이제 손을 멈추고, 잠시 그대로 머뭅니다.',
     extraMindfulnessSeconds: 60,
   },
   good: {
-    startMessage: '임시 문구',
-    endMessage: '임시 문구',
+    startMessage: '지금의 여유를 유지한 채, 이 시간을 이어갑니다.',
+    endMessage: '이제 자연스럽게 마무리로 이어갑니다.',
     extraMindfulnessSeconds: 0,
   },
 }

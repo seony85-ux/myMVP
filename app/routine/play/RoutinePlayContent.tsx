@@ -44,14 +44,14 @@ interface BgmData {
 // 따라서 routineSteps 생성 시점에 동적으로 텍스트를 결정해야 합니다.
 const STEP_TEXTS_BASE: Record<string, string> = {
   // intro1과 finish1은 emotionUXCopy.ts에서 동적으로 결정되므로 여기서 제외
-  intro2: '천천히 숨을 들이쉬고 내쉬어보세요.',
-  toner1: '지금 이 순간, 토너에 집중해보세요.',
-  toner2: '토너를 부드럽게 펴발라주세요.',
-  essence1: '지금 이 순간, 에센스에 집중해보세요.',
-  essence2: '에센스를 가볍게 두드려 흡수시켜주세요.',
-  cream1: '지금 이 순간, 크림에 집중해보세요.',
-  cream2: '크림을 부드럽게 마사지하며 발라주세요.',
-  finish2: '당신의 피부가 건강하게 빛나기를 바랍니다.',
+  intro2: '호흡은 자연스럽게 두고 진행합니다.',
+  toner1: '이제 토너 단계 입니다.',
+  toner2: '토너의 촉촉함이 피부에 남습니다.',
+  essence1: '에센스 단계로 넘어갑니다.',
+  essence2: '손 끝의 움직임에 따라 질감이 달라집니다.',
+  cream1: '크림으로 마무리합니다.',
+  cream2: '피부에 편안한 상태가 이어집니다.',
+  finish2: '당신이 건강하게 빛나기를 바랍니다.',
 }
 
 // 자율 모드 텍스트 (basic 모드에서 중간 단계)
@@ -316,7 +316,7 @@ export default function RoutinePlayContent() {
   // UI 단계 이름 배열 (모드별로 다름)
   const stepUiNames = useMemo(() => {
     if (routineMode === 'basic') {
-      return ['시작', '자율', '마무리']
+      return ['준비', '자율', '마무리']
     } else {
       // detailed 모드: 항상 (토너, 에센스, 크림) 순서로 표시하되, 선택된 것만 포함
       const stepLabels: Record<string, string> = {
@@ -329,7 +329,7 @@ export default function RoutinePlayContent() {
       const fixedOrder: string[] = ['toner', 'essence', 'cream']
       
       // 항상 시작과 마무리 포함
-      const names: string[] = ['시작']
+      const names: string[] = ['준비']
       
       // fixedOrder 순서대로 선택된 단계만 추가
       fixedOrder.forEach((step) => {
@@ -766,10 +766,10 @@ export default function RoutinePlayContent() {
             // extra_mindfulness phase UI
             <div className="flex flex-col items-center justify-center text-center space-y-4">
               <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
-                잠시 더 머물러요
+                잠시 그대로...
               </h2>
               <p className="text-base sm:text-lg text-gray-600 max-w-md">
-                {ux.extraMindfulnessSeconds}초 동안 지금의 감각과 호흡을 이어갑니다.
+                {ux.extraMindfulnessSeconds}초 동안, 지금 이 상태로 머물러 보아요.
               </p>
             </div>
           ) : (
