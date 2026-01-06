@@ -16,7 +16,7 @@ export default function MeditationText({
         ${animate ? 'animate-fade-in' : ''}
       `}
     >
-      <p className="text-xl sm:text-2xl text-gray-800 leading-relaxed font-medium">
+      <p className="text-xl sm:text-2xl text-gray-800 leading-relaxed font-medium whitespace-pre-line break-keep">
         {text}
       </p>
     </div>

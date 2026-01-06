@@ -889,7 +889,7 @@ export default function RoutinePlayContent() {
               <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
                 잠시 그대로...
               </h2>
-              <p className="text-base sm:text-lg text-gray-600 max-w-md">
+              <p className="text-base sm:text-lg text-gray-600 max-w-md whitespace-pre-line leading-relaxed break-keep">
                 {ux.extraMindfulnessSeconds}초 동안, 지금 이 상태로 머물러 보아요.
               </p>
             </div>
