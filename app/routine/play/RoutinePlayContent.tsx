@@ -68,23 +68,24 @@ const AUTONOMOUS_DURATION = 5000 // 테스트용: 5초
 export default function RoutinePlayContent() {
   const router = useRouter()
   
-  // Zustand 스토어에서 상태 가져오기
-  const session = useSessionStore()
-  const emotionLevelRaw = session.emotionLevel
-  const bgmId = session.bgmId
-  const routineMode = session.routineMode
-  const voiceGuideEnabled = session.voiceGuideEnabled
-  const selectedSteps = session.selectedSteps
+  // Zustand 스토어에서 상태 가져오기 (개별 selector 사용으로 리렌더링 최적화)
+  const emotionLevelRaw = useSessionStore((state) => state.emotionLevel)
+  const bgmId = useSessionStore((state) => state.bgmId)
+  const routineMode = useSessionStore((state) => state.routineMode)
+  const voiceGuideEnabled = useSessionStore((state) => state.voiceGuideEnabled)
+  const selectedSteps = useSessionStore((state) => state.selectedSteps)
 
-  // emotionLevel을 emotionState로 변환하고 UX 복사본 가져오기
-  // 범위 밖이거나 undefined면 neutral에 해당하는 값으로 fallback
-  const emotionLevel: EmotionLevel = 
-    (emotionLevelRaw !== null && 
-     emotionLevelRaw >= 1 && 
-     emotionLevelRaw <= 5) 
-      ? (emotionLevelRaw as EmotionLevel) 
-      : 3 // neutral에 해당하는 값으로 fallback
-  const emotionState = emotionStateMap[emotionLevel]
+  // emotionLevel을 emotionState로 변환 (메모이제이션으로 불필요한 재계산 방지)
+  const emotionLevel = useMemo<EmotionLevel>(() => {
+    if (emotionLevelRaw !== null && emotionLevelRaw >= 1 && emotionLevelRaw <= 5) {
+      return emotionLevelRaw as EmotionLevel
+    }
+    return 3 // neutral에 해당하는 값으로 fallback
+  }, [emotionLevelRaw])
+  
+  const emotionState = useMemo(() => emotionStateMap[emotionLevel], [emotionLevel])
+  
+  // ux 객체는 routineSteps useMemo 내부에서 사용하므로 여기서는 참조만 유지
   const ux = emotionUXCopy[emotionState]
 
   // 현재 진행 중인 단계 인덱스 관리 (초기값: 0)
@@ -117,19 +118,52 @@ export default function RoutinePlayContent() {
   // AudioManager ref
   const audioManagerRef = useRef<AudioManagerRef>(null)
 
-  // Supabase에서 음성 가이드 데이터 가져오기
+  // Wake Lock API 타입 정의
+  interface WakeLockSentinel extends EventTarget {
+    released: boolean
+    release(): Promise<void>
+    addEventListener(type: 'release', listener: () => void): void
+    removeEventListener(type: 'release', listener: () => void): void
+  }
+
+  interface NavigatorWithWakeLock {
+    wakeLock?: {
+      request(type: 'screen'): Promise<WakeLockSentinel>
+    }
+  }
+
+  // 화면 꺼짐 방지 상태 관리
+  const [isWakeLockActive, setIsWakeLockActive] = useState(false)
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null)
+
+  // Supabase에서 음성 가이드 및 BGM 데이터 병렬로 가져오기 (성능 최적화)
   useEffect(() => {
-    const fetchVoiceGuides = async () => {
+    const fetchData = async () => {
       try {
         setIsLoadingVoiceGuides(true)
-        const response = await fetch('/api/voice-guides')
+        setIsLoadingBgms(true)
         
-        if (!response.ok) {
-          throw new Error(`Failed to fetch voice guides: ${response.status}`)
+        // Promise.all로 병렬 처리하여 로딩 시간 단축
+        const [voiceResponse, bgmResponse] = await Promise.all([
+          fetch('/api/voice-guides'),
+          fetch('/api/bgms')
+        ])
+        
+        // 응답 검증
+        if (!voiceResponse.ok) {
+          throw new Error(`Failed to fetch voice guides: ${voiceResponse.status}`)
+        }
+        if (!bgmResponse.ok) {
+          throw new Error(`Failed to fetch bgms: ${bgmResponse.status}`)
         }
         
-        const result = await response.json()
-        const guides = result.data || []
+        // JSON 파싱도 병렬 처리
+        const [voiceResult, bgmResult] = await Promise.all([
+          voiceResponse.json(),
+          bgmResponse.json()
+        ])
+        
+        const guides = voiceResult.data || []
         
         // audio_url 유효성 검증 및 로깅
         const validatedGuides = guides.map((guide: VoiceGuideData) => {
@@ -151,41 +185,19 @@ export default function RoutinePlayContent() {
         })
         
         setVoiceGuides(validatedGuides)
+        setBgms(bgmResult.data || [])
       } catch (error) {
-        console.error('음성 가이드 데이터 로드 실패:', error)
+        console.error('데이터 로드 실패:', error)
         // 에러 발생 시 빈 배열로 설정
         setVoiceGuides([])
-      } finally {
-        setIsLoadingVoiceGuides(false)
-      }
-    }
-
-    fetchVoiceGuides()
-  }, [])
-
-  // Supabase에서 BGM 데이터 가져오기
-  useEffect(() => {
-    const fetchBgms = async () => {
-      try {
-        setIsLoadingBgms(true)
-        const response = await fetch('/api/bgms')
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch bgms: ${response.status}`)
-        }
-        
-        const result = await response.json()
-        setBgms(result.data || [])
-      } catch (error) {
-        console.error('BGM 데이터 로드 실패:', error)
-        // 에러 발생 시 빈 배열로 설정
         setBgms([])
       } finally {
+        setIsLoadingVoiceGuides(false)
         setIsLoadingBgms(false)
       }
     }
 
-    fetchBgms()
+    fetchData()
   }, [])
 
   // Supabase 데이터와 하드코딩된 텍스트를 결합한 루틴 단계 배열
@@ -194,6 +206,9 @@ export default function RoutinePlayContent() {
       // 데이터가 없을 때는 빈 배열 반환 (로딩 중)
       return []
     }
+
+    // emotionState에 따라 ux 객체 가져오기 (useMemo 내부에서 사용)
+    const ux = emotionUXCopy[emotionState]
 
     let filteredGuides = voiceGuides
 
@@ -277,7 +292,7 @@ export default function RoutinePlayContent() {
       silenceAfter: guide.silence_after,
       }
     })
-  }, [voiceGuides, routineMode, selectedSteps, ux])
+  }, [voiceGuides, routineMode, selectedSteps, emotionState])
 
   // 현재 단계
   const currentStep = useMemo(() => {
@@ -433,8 +448,72 @@ export default function RoutinePlayContent() {
     return routineSteps.length > 0 && currentStepIndex >= routineSteps.length - 1
   }, [currentStepIndex, routineSteps.length])
 
+  // Wake Lock API 지원 여부 확인
+  const isWakeLockSupported = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    const nav = navigator as NavigatorWithWakeLock
+    return 'wakeLock' in nav && nav.wakeLock !== undefined
+  }, [])
+
+  // Wake Lock 요청
+  const requestWakeLock = useCallback(async () => {
+    if (!isWakeLockSupported) {
+      console.warn('Wake Lock API is not supported')
+      return false
+    }
+
+    try {
+      const nav = navigator as unknown as NavigatorWithWakeLock
+      const wakeLock = await nav.wakeLock!.request('screen')
+      
+      wakeLockRef.current = wakeLock
+      setIsWakeLockActive(true)
+
+      // release 이벤트 리스너 추가
+      wakeLock.addEventListener('release', () => {
+        setIsWakeLockActive(false)
+        wakeLockRef.current = null
+      })
+
+      return true
+    } catch (err: any) {
+      console.error('Wake Lock request failed:', err)
+      setIsWakeLockActive(false)
+      wakeLockRef.current = null
+      
+      // 사용자에게 에러 메시지 표시 (선택사항)
+      if (err.name === 'NotAllowedError') {
+        alert('화면 꺼짐 방지 기능을 사용하려면 브라우저 권한이 필요합니다.')
+      }
+      
+      return false
+    }
+  }, [isWakeLockSupported])
+
+  // Wake Lock 해제
+  const releaseWakeLock = useCallback(async () => {
+    if (wakeLockRef.current) {
+      try {
+        await wakeLockRef.current.release()
+        wakeLockRef.current = null
+        setIsWakeLockActive(false)
+      } catch (err) {
+        console.error('Wake Lock release failed:', err)
+      }
+    }
+  }, [])
+
+  // Wake Lock 토글 핸들러
+  const handleToggleWakeLock = useCallback(async () => {
+    if (isWakeLockActive) {
+      await releaseWakeLock()
+    } else {
+      await requestWakeLock()
+    }
+  }, [isWakeLockActive, requestWakeLock, releaseWakeLock])
+
   // 중단 핸들러
-  const handleStop = useCallback(() => {
+  const handleStop = useCallback(async () => {
     const confirmed = window.confirm('정말 루틴을 중단하시겠어요?')
     
     if (!confirmed) {
@@ -443,8 +522,10 @@ export default function RoutinePlayContent() {
 
     setIsAborted(true)
     audioManagerRef.current?.pause()
+    // 중단 시 Wake Lock 해제
+    await releaseWakeLock()
     router.push('/result/summary?aborted=1')
-  }, [router])
+  }, [router, releaseWakeLock])
 
   // 일시중지 핸들러
   const handlePause = useCallback(() => {
@@ -459,10 +540,12 @@ export default function RoutinePlayContent() {
   }, [])
 
   // 끝내기 핸들러
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback(async () => {
     audioManagerRef.current?.pause()
+    // 완료 시 Wake Lock 해제
+    await releaseWakeLock()
     router.push('/result/emotion')
-  }, [router])
+  }, [router, releaseWakeLock])
 
   // 음성 재생 완료 핸들러
   const onVoiceEnded = useCallback(() => {
@@ -481,8 +564,10 @@ export default function RoutinePlayContent() {
     }
     
     // finish1 오디오 + silence after가 모두 끝났을 때 phase 분기
+    // emotionState에 따라 ux 객체 가져오기
+    const currentUx = emotionUXCopy[emotionState]
     const handleAfterFinish1 = () => {
-      if (ux.extraMindfulnessSeconds > 0) {
+      if (currentUx.extraMindfulnessSeconds > 0) {
         setPhase('extra_mindfulness')
       } else {
         setPhase('finish2')
@@ -516,7 +601,7 @@ export default function RoutinePlayContent() {
       }
       }
     }
-  }, [currentStepIndex, routineSteps, ux])
+  }, [currentStepIndex, routineSteps, emotionState])
   
   /*
    * extra_mindfulness phase
@@ -549,6 +634,9 @@ export default function RoutinePlayContent() {
         return
       }
       
+      // emotionState에 따라 ux 객체 가져오기
+      const currentUx = emotionUXCopy[emotionState]
+      
       extraMindfulnessTimerRef.current = setTimeout(() => {
         extraMindfulnessTimerRef.current = null
         setPhase('finish2')
@@ -556,7 +644,7 @@ export default function RoutinePlayContent() {
         if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
           setCurrentStepIndex((prev) => prev + 1)
         }
-      }, ux.extraMindfulnessSeconds * 1000)
+      }, currentUx.extraMindfulnessSeconds * 1000)
       
       return () => {
         if (extraMindfulnessTimerRef.current) {
@@ -565,7 +653,7 @@ export default function RoutinePlayContent() {
         }
       }
     }
-  }, [phase, ux.extraMindfulnessSeconds, routineSteps.length, currentStepIndex, isPaused])
+  }, [phase, emotionState, routineSteps.length, currentStepIndex, isPaused])
   
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -623,8 +711,10 @@ export default function RoutinePlayContent() {
         const waitTime = 3000 + (step.silenceAfter || 0)
         const waitTimer = setTimeout(() => {
           // finish1인 경우 phase 분기 처리
+          // emotionState에 따라 ux 객체 가져오기
+          const currentUx = emotionUXCopy[emotionState]
           if (step.id === 'finish1') {
-            if (ux.extraMindfulnessSeconds > 0) {
+            if (currentUx.extraMindfulnessSeconds > 0) {
               setPhase('extra_mindfulness')
             } else {
               setPhase('finish2')
@@ -673,7 +763,7 @@ export default function RoutinePlayContent() {
         clearTimeout(timer)
       }
     }
-  }, [currentStepIndex, isAborted, isPaused, isLastStep, routineSteps, voiceGuideEnabled])
+  }, [currentStepIndex, isAborted, isPaused, isLastStep, routineSteps, voiceGuideEnabled, emotionState])
 
   // 컴포넌트 마운트 시 BGM 시작
   useEffect(() => {
@@ -702,6 +792,34 @@ export default function RoutinePlayContent() {
       }
     }
   }, [isPaused, isAborted, currentStep.id])
+
+  // Wake Lock: visibilitychange 이벤트 처리 (페이지가 다시 보일 때 자동 재요청)
+  useEffect(() => {
+    if (!isWakeLockSupported) return
+
+    const handleVisibilityChange = async () => {
+      // 페이지가 다시 보이고, 이전에 Wake Lock이 활성화되어 있었다면 재요청
+      if (document.visibilityState === 'visible' && isWakeLockActive && !wakeLockRef.current) {
+        await requestWakeLock()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [isWakeLockSupported, isWakeLockActive, requestWakeLock])
+
+  // 컴포넌트 언마운트 시 Wake Lock 해제
+  useEffect(() => {
+    return () => {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch((err) => {
+          console.error('Wake Lock cleanup failed:', err)
+        })
+      }
+    }
+  }, [])
 
   // 로딩 중일 때 표시
   if (isLoadingVoiceGuides || isLoadingBgms) {
@@ -750,6 +868,9 @@ export default function RoutinePlayContent() {
           stepName={currentStepName}
           stepNumber={uiStepIndex + 1}
           totalSteps={stepUiNames.length}
+          wakeLockActive={isWakeLockActive}
+          wakeLockSupported={isWakeLockSupported}
+          onToggleWakeLock={handleToggleWakeLock}
         />
 
         {/* 진행 상태 시각화 */}
