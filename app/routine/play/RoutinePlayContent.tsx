@@ -45,11 +45,11 @@ interface BgmData {
 const STEP_TEXTS_BASE: Record<string, string> = {
   // intro1과 finish1은 emotionUXCopy.ts에서 동적으로 결정되므로 여기서 제외
   intro2: '호흡은 자연스럽게 두고 진행합니다.',
-  toner1: '이제 토너 단계 입니다.',
+  toner1: '토너 단계입니다.',
   toner2: '토너의 촉촉함이 피부에 남습니다.',
-  essence1: '에센스 단계로 넘어갑니다.',
+  essence1: '에센스 단계입니다.',
   essence2: '손 끝의 움직임에 따라 질감이 달라집니다.',
-  cream1: '크림으로 마무리합니다.',
+  cream1: '크림 단계입니다.',
   cream2: '피부에 편안한 상태가 이어집니다.',
   finish2: '당신이 건강하게 빛나기를 바랍니다.',
 }
@@ -547,6 +547,20 @@ export default function RoutinePlayContent() {
     router.push('/result/emotion')
   }, [router, releaseWakeLock])
 
+  // extra_mindfulness 단계에서 즉시 종료 핸들러
+  const handleSkipToFinish2 = useCallback(() => {
+    // extra_mindfulness 타이머 정리
+    if (extraMindfulnessTimerRef.current) {
+      clearTimeout(extraMindfulnessTimerRef.current)
+      extraMindfulnessTimerRef.current = null
+    }
+    // finish2로 이동
+    setPhase('finish2')
+    if (routineSteps.length > 0 && currentStepIndex < routineSteps.length - 1) {
+      setCurrentStepIndex((prev) => prev + 1)
+    }
+  }, [routineSteps.length, currentStepIndex])
+
   // 음성 재생 완료 핸들러
   const onVoiceEnded = useCallback(() => {
     setIsVoicePlaying(false)
@@ -901,7 +915,38 @@ export default function RoutinePlayContent() {
 
         {/* 하단: 버튼 영역 */}
         <CTAContainer>
-          {isLastStep && phase !== 'extra_mindfulness' ? (
+          {phase === 'extra_mindfulness' ? (
+            // extra_mindfulness 단계: 일시중지/재개 및 즉시 종료 버튼
+            <div className="flex gap-3 w-full">
+              {isPaused ? (
+                <Button
+                  onClick={handleResume}
+                  variant="primary"
+                  size="lg"
+                  className="flex-1"
+                >
+                  재개
+                </Button>
+              ) : (
+                <Button
+                  onClick={handlePause}
+                  variant="secondary"
+                  size="lg"
+                  className="flex-1"
+                >
+                  일시중지
+                </Button>
+              )}
+              <Button
+                onClick={handleSkipToFinish2}
+                variant="primary"
+                size="lg"
+                className="flex-1"
+              >
+                즉시 종료
+              </Button>
+            </div>
+          ) : isLastStep ? (
             // 마지막 단계: 끝내기 버튼
             <Button
               onClick={handleComplete}
