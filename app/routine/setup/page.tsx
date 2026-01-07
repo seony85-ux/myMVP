@@ -84,8 +84,8 @@ export default function RoutineSetupPage() {
     <AppLayout>
       <div className="flex flex-col min-h-[100svh]">
         {/* 상단 영역: 화면 제목 */}
-        <div className="px-6 pt-8 pb-6 border-b-2 border-gray-200">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">오늘의 루틴 설정</h1>
+        <div className="px-6 pt-8 pb-6 border-b-2 border-[#CDCAC3]">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-heading">오늘의 루틴 설정</h1>
         </div>
 
         {/* 스크롤 가능한 콘텐츠 영역 (CTA 높이만큼 여백 추가) */}

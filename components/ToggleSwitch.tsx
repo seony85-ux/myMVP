@@ -56,8 +56,8 @@ export default function ToggleSwitch({
           className={`
             relative ${currentSize.container}
             rounded-full transition-all duration-300 ease-in-out
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
-            ${value ? 'bg-green-500' : 'bg-gray-300'}
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6E8578]
+            ${value ? 'bg-[#6E8578]' : 'bg-[#CDCAC3]'}
           `}
         >
           {/* 원형 thumb */}

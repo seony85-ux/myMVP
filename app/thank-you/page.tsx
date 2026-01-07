@@ -29,7 +29,7 @@ export default function ThankYouPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 sm:py-8 pb-24 sm:pb-28">
           <div className="flex flex-col items-center space-y-5 sm:space-y-6 md:space-y-8 w-full max-w-md">
             {/* 이미지 영역 */}
-            <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg flex-shrink-0 relative">
+            <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full border-2 border-[#CDCAC3] overflow-hidden shadow-lg flex-shrink-0 relative">
               <Image
                 src="/images/lastone.webp"
                 alt="감사 이미지"
@@ -41,7 +41,7 @@ export default function ThankYouPage() {
 
             {/* 감사 문구 */}
             <div className="text-center space-y-2 sm:space-y-3 px-4">
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight font-heading">
                 체험해주셔서 감사합니다
               </p>
               <div className="text-lg sm:text-xl text-gray-700 leading-relaxed font-medium space-y-1.5">

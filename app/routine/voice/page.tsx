@@ -23,7 +23,7 @@ export default function VoiceGuidePage() {
       <div className="flex flex-col min-h-[100svh]">
         {/* 상단: 질문 텍스트 */}
         <div className="px-6 pt-16 pb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight font-heading">
             음성 가이드를 들으시겠어요?
           </h1>
         </div>

@@ -22,8 +22,8 @@ export default function SkincareStepToggle({
         flex flex-col items-center justify-center gap-3
         ${
           checked
-            ? 'bg-green-50 border-green-500 shadow-md'
-            : 'bg-white border-gray-300 hover:border-gray-400'
+            ? 'bg-[#F5F4F0] border-[#6E8578] shadow-md'
+            : 'bg-white border-[#CDCAC3] hover:border-[#b8b5ae]'
         }
         active:scale-98
       `}
@@ -31,7 +31,7 @@ export default function SkincareStepToggle({
     >
       <span
         className={`font-medium text-center ${
-          checked ? 'text-green-700' : 'text-gray-800'
+          checked ? 'text-[#1A202C]' : 'text-[#333333]'
         }`}
       >
         {label}
@@ -41,8 +41,8 @@ export default function SkincareStepToggle({
           w-6 h-6 rounded border-2 flex items-center justify-center
           ${
             checked
-              ? 'bg-green-500 border-green-600'
-              : 'bg-white border-gray-400'
+              ? 'bg-[#6E8578] border-[#5a6f63]'
+              : 'bg-white border-[#CDCAC3]'
           }
         `}
       >

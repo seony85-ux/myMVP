@@ -21,8 +21,8 @@ export default function RoutineModeSelector({
             min-w-[140px] sm:min-w-[160px]
             ${
               value === 'basic'
-                ? 'bg-green-500 text-white border-green-600 shadow-md'
-                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:text-gray-800'
+                ? 'bg-[#6E8578] text-white border-[#5a6f63] shadow-md'
+                : 'bg-white text-[#333333] border-[#CDCAC3] hover:border-[#b8b5ae] hover:text-[#1A202C]'
             }
             active:scale-95
           `}
@@ -38,8 +38,8 @@ export default function RoutineModeSelector({
             min-w-[140px] sm:min-w-[160px]
             ${
               value === 'detailed'
-                ? 'bg-green-500 text-white border-green-600 shadow-md'
-                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400 hover:text-gray-800'
+                ? 'bg-[#6E8578] text-white border-[#5a6f63] shadow-md'
+                : 'bg-white text-[#333333] border-[#CDCAC3] hover:border-[#b8b5ae] hover:text-[#1A202C]'
             }
             active:scale-95
           `}
@@ -50,8 +50,8 @@ export default function RoutineModeSelector({
       </div>
 
       {/* 설명 문구 */}
-      <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-sm text-gray-700 text-center">
+      <div className="px-4 py-3 bg-[#F5F4F0] rounded-lg border border-[#CDCAC3]">
+        <p className="text-sm text-[#333333] text-center">
           {value === 'basic'
             ? '시작과 마무리 안내만 제공되는 간결한 루틴'
             : '제품 단계에 맞춰 감각 안내가 이어지는 루틴'}

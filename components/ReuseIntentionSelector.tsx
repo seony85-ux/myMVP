@@ -20,8 +20,8 @@ export default function ReuseIntentionSelector({
             font-semibold text-base
             ${
               value === true
-                ? 'bg-green-500 border-green-600 text-white shadow-md'
-                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                ? 'bg-[#6E8578] border-[#5a6f63] text-white shadow-md'
+                : 'bg-white border-[#CDCAC3] text-[#333333] hover:border-[#b8b5ae]'
             }
             active:scale-95
           `}
@@ -38,7 +38,7 @@ export default function ReuseIntentionSelector({
             ${
               value === false
                 ? 'bg-red-500 border-red-600 text-white shadow-md'
-                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                : 'bg-white border-[#CDCAC3] text-[#333333] hover:border-[#b8b5ae]'
             }
             active:scale-95
           `}

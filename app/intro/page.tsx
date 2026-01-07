@@ -22,7 +22,7 @@ export default function IntroPage() {
       <div className="flex flex-col min-h-[100svh]">
         {/* 상단: 태그라인 */}
         <div className="px-6 pt-16 pb-6 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight font-heading">
             잠시, 피부에만 집중하는 시간
           </h1>
         </div>
@@ -31,7 +31,7 @@ export default function IntroPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
           <div className="flex flex-col items-center space-y-8 w-full max-w-sm">
             {/* 원형 이미지 영역 */}
-            <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full border-2 border-gray-200 overflow-hidden shadow-lg relative">
+            <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full border-2 border-[#CDCAC3] overflow-hidden shadow-lg relative">
               <Image
                 src="/images/mainimage.webp"
                 alt="메인 이미지"

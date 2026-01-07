@@ -31,8 +31,8 @@ export default function SatisfactionSelector({
               border-2
               ${
                 value === score
-                  ? 'bg-blue-500 border-blue-600 scale-110 shadow-lg'
-                  : 'bg-gray-100 border-gray-300 hover:bg-gray-200'
+                  ? 'bg-[#6E8578] border-[#5a6f63] scale-110 shadow-lg'
+                  : 'bg-[#F5F4F0] border-[#CDCAC3] hover:bg-[#e8e6e0]'
               }
               active:scale-95
             `}

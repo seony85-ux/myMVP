@@ -27,10 +27,10 @@ export default function Button({
   `
 
   const variantStyles = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 active:bg-gray-400',
+    primary: 'bg-[#6E8578] text-white hover:bg-[#5a6f63] active:bg-[#4d5e54]',
+    secondary: 'bg-[#CDCAC3] text-[#1A202C] hover:bg-[#b8b5ae] active:bg-[#a39f97]',
     danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
+    ghost: 'bg-transparent text-[#333333] hover:bg-[#F5F4F0] active:bg-[#e8e6e0]',
   }
 
   const sizeStyles = {

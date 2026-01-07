@@ -38,7 +38,7 @@ export default function AfterEmotionPage() {
       <div className="flex flex-col min-h-[100svh]">
         {/* 상단: 질문 텍스트 */}
         <div className="px-6 pt-16 pb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight font-heading">
             지금 기분은 어떤가요?
           </h1>
           {/* 루틴 전 감정 점수 힌트 */}

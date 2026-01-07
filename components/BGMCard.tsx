@@ -37,15 +37,15 @@ export default function BGMCard({
         text-left
         ${
           selected
-            ? 'bg-blue-50 border-blue-500 shadow-md'
-            : 'bg-white border-gray-300 hover:border-gray-400'
+            ? 'bg-[#F5F4F0] border-[#6E8578] shadow-md'
+            : 'bg-white border-[#CDCAC3] hover:border-[#b8b5ae]'
         }
         active:scale-98
       `}
       aria-label={`BGM 선택: ${name}`}
     >
       {/* 이미지 영역 (4:3 비율) */}
-      <div className="w-full aspect-[4/3] bg-gray-100 border-b border-gray-200 overflow-hidden relative">
+      <div className="w-full aspect-[4/3] bg-[#F5F4F0] border-b border-[#CDCAC3] overflow-hidden relative">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -54,7 +54,7 @@ export default function BGMCard({
             className="object-cover object-bottom"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+          <div className="w-full h-full flex items-center justify-center text-[#CDCAC3] text-sm">
             이미지 없음
           </div>
         )}
@@ -64,12 +64,12 @@ export default function BGMCard({
         <div className="flex-1">
           <h3
             className={`font-semibold mb-1 ${
-              selected ? 'text-blue-700' : 'text-gray-800'
+              selected ? 'text-[#1A202C]' : 'text-[#333333]'
             }`}
           >
             {name}
           </h3>
-          <p className={`text-sm ${selected ? 'text-blue-600' : 'text-gray-600'}`}>
+          <p className={`text-sm ${selected ? 'text-[#6E8578]' : 'text-[#333333]'}`}>
             {description}
           </p>
         </div>
@@ -79,8 +79,8 @@ export default function BGMCard({
             ml-4
             ${
               selected
-                ? 'bg-blue-500 border-blue-600'
-                : 'bg-white border-gray-400'
+                ? 'bg-[#6E8578] border-[#5a6f63]'
+                : 'bg-white border-[#CDCAC3]'
             }
           `}
         >
