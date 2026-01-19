@@ -17,7 +17,7 @@ export const emotionUXCopy: Record<
   neutral: {
     startMessage: '지금 그대로, \n이 시간을 시작합니다.',
     endMessage: '움직임을 멈추고, \n이 상태를 잠시 유지합니다.',
-    extraMindfulnessSeconds: 30,
+    extraMindfulnessSeconds: 40,
   },
   bad: {
     startMessage: '지금은 편안하지 않아도 괜찮습니다. \n이 상태로 시작합니다.',

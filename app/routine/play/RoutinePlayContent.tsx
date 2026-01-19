@@ -55,12 +55,13 @@ const STEP_TEXTS_BASE: Record<string, string> = {
 }
 
 // 자율 모드 텍스트 (basic 모드에서 중간 단계)
-const AUTONOMOUS_TEXT = '자유롭게 스킨케어를 진행해보세요.'
+const AUTONOMOUS_TEXT =
+  '피부의 온기와 텍스쳐의 밀도를 느끼며\n자유롭게 스킨케어를 진행해보세요.'
 
 // 자율 모드 시간 설정 (밀리초 단위)
 // ⚙️ 시간 설정 위치: 아래 AUTONOMOUS_DURATION 값을 변경하세요
 // 예: 5000 = 5초, 60000 = 1분, 120000 = 2분
-const AUTONOMOUS_DURATION = 5000 // 테스트용: 5초
+const AUTONOMOUS_DURATION = 210000 // 210초(3.5분)
 
 // 진행 단계 UI 매핑은 모드별로 동적으로 생성됨
 
