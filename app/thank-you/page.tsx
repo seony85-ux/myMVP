@@ -1,32 +1,47 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import AppLayout from '@/components/AppLayout'
-import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
 import { useSessionStore } from '@/stores/sessionStore'
 
 export default function ThankYouPage() {
   const router = useRouter()
   const resetSession = useSessionStore((state) => state.resetSession)
+  const [showSubmittedNotice, setShowSubmittedNotice] = useState(false)
 
-  const handleGoHome = () => {
-    // 세션 리셋 후 인트로로 이동
-    resetSession()
-    router.push('/intro')
-  }
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      event.preventDefault()
+      setShowSubmittedNotice(true)
+      // 뒤로가기 히스토리를 막기 위해 현재 상태를 다시 푸시
+      window.history.pushState(null, '', window.location.href)
+    }
+
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
 
   const handleLearnMore = () => {
     // TODO: 추후 링크 연결 예정
     console.log('더 알아보기 클릭')
   }
 
+  const handleConfirmSubmitted = () => {
+    resetSession()
+    router.replace('/intro')
+  }
+
   return (
     <AppLayout>
       <div className="flex flex-col min-h-[100svh] justify-between">
         {/* 상단: 이미지 + 감사 문구 + 더 알아보기 버튼 */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 sm:py-8 pb-24 sm:pb-28">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 sm:py-8">
           <div className="flex flex-col items-center space-y-5 sm:space-y-6 md:space-y-8 w-full max-w-md">
             {/* 이미지 영역 */}
             <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full border-2 border-[#CDCAC3] overflow-hidden shadow-lg flex-shrink-0 relative">
@@ -64,18 +79,26 @@ export default function ThankYouPage() {
           </div>
         </div>
 
-        {/* 하단 CTA */}
-        <CTAContainer>
-          <Button
-            onClick={handleGoHome}
-            variant="primary"
-            size="lg"
-            fullWidth
-          >
-            처음으로
-          </Button>
-        </CTAContainer>
       </div>
+      {showSubmittedNotice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl">
+            <p className="text-base sm:text-lg text-[#333333] leading-relaxed">
+              이미 양식이 제출되었습니다.
+            </p>
+            <div className="mt-6">
+              <Button
+                onClick={handleConfirmSubmitted}
+                variant="primary"
+                size="md"
+                fullWidth
+              >
+                확인
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

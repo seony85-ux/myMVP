@@ -36,13 +36,17 @@ export default function RoutineSetupPage() {
 
   // 로컬 UI 상태
   const [stepsTouched, setStepsTouched] = useState(false)
+  const [emotionTouched, setEmotionTouched] = useState(false)
+  const [bgmTouched, setBgmTouched] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   // 다음 버튼 활성화 조건
   // basic: 항상 enable
   // detailed: selectedSteps.length >= 1
   const isNextButtonEnabled =
-    routineMode === 'basic' || selectedSteps.length >= 1
+    emotionLevel !== null &&
+    bgmTouched &&
+    (routineMode === 'basic' || selectedSteps.length >= 1)
 
   const handleModeChange = (mode: 'basic' | 'detailed') => {
     setRoutineMode(mode)
@@ -60,10 +64,16 @@ export default function RoutineSetupPage() {
 
   const handleEmotionChange = (score: number | null) => {
     setEmotionLevel(score)
+    setEmotionTouched(true)
     // 감정 점수를 beforeEmotion에도 저장
     if (score !== null) {
       setBeforeEmotion(score)
     }
+  }
+
+  const handleBgmChange = (id: string | null) => {
+    setBgmId(id)
+    setBgmTouched(true)
   }
 
   const handleNext = () => {
@@ -79,6 +89,8 @@ export default function RoutineSetupPage() {
     routineMode === 'detailed' &&
     (stepsTouched || submitted) &&
     selectedSteps.length === 0
+  const shouldShowEmotionError = submitted && emotionLevel === null
+  const shouldShowBgmError = submitted && !bgmTouched
 
   return (
     <AppLayout>
@@ -96,14 +108,24 @@ export default function RoutineSetupPage() {
           <div className="pt-2">
             <EmotionSelector value={emotionLevel} onChange={handleEmotionChange} showLabels />
           </div>
+          {shouldShowEmotionError && (
+            <p className="text-center text-sm text-red-600 mt-4">
+              기분을 선택해주세요
+            </p>
+          )}
         </SectionBlock>
 
         {/* 섹션 2: BGM 선택 */}
         <SectionBlock>
           <SectionHeader title="배경음" />
           <div className="pt-2">
-            <BGMCardList bgms={mockBGMs} selectedId={bgmId} onSelect={setBgmId} />
+            <BGMCardList bgms={mockBGMs} selectedId={bgmId} onSelect={handleBgmChange} />
           </div>
+          {shouldShowBgmError && (
+            <p className="text-center text-sm text-red-600 mt-4">
+              배경음을 선택해주세요
+            </p>
+          )}
         </SectionBlock>
 
         {/* 섹션 3: 루틴 모드 선택 */}

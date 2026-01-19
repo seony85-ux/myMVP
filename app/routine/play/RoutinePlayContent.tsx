@@ -56,7 +56,7 @@ const STEP_TEXTS_BASE: Record<string, string> = {
 
 // 자율 모드 텍스트 (basic 모드에서 중간 단계)
 const AUTONOMOUS_TEXT =
-  '피부의 온기와 텍스쳐의 밀도를 느끼며\n자유롭게 스킨케어를 진행해보세요.'
+  '피부의 온기와 제품의 질감을 느끼며\n자유롭게 스킨케어를 진행해보세요.'
 
 // 자율 모드 시간 설정 (밀리초 단위)
 // ⚙️ 시간 설정 위치: 아래 AUTONOMOUS_DURATION 값을 변경하세요
