@@ -28,8 +28,7 @@ export default function ThankYouPage() {
   }, [])
 
   const handleLearnMore = () => {
-    // TODO: 추후 링크 연결 예정
-    console.log('더 알아보기 클릭')
+    window.open('https://seony85-ux.github.io/sulynpage/', '_blank', 'noopener,noreferrer')
   }
 
   const handleConfirmSubmitted = () => {
