@@ -7,7 +7,6 @@ import CTAContainer from '@/components/CTAContainer'
 import Button from '@/components/Button'
 import EmotionComparison from '@/components/EmotionComparison'
 import SatisfactionSelector from '@/components/SatisfactionSelector'
-import ReuseIntentionSelector from '@/components/ReuseIntentionSelector'
 import SectionHeader from '@/components/SectionHeader'
 import SectionBlock from '@/components/SectionBlock'
 import { useSessionStore } from '@/stores/sessionStore'
@@ -26,17 +25,14 @@ export default function SummaryContent() {
   const selectedSteps = useSessionStore((state) => state.selectedSteps)
   const voiceGuideEnabled = useSessionStore((state) => state.voiceGuideEnabled)
   const satisfaction = useSessionStore((state) => state.satisfaction)
-  const reuseIntention = useSessionStore((state) => state.reuseIntention)
   const setSatisfaction = useSessionStore((state) => state.setSatisfaction)
-  const setReuseIntention = useSessionStore((state) => state.setReuseIntention)
 
   // 로컬 UI 상태
   const [submitted, setSubmitted] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // 다음 버튼 활성화 조건: 만족도와 재사용 의향 모두 선택 필수
-  const isCompleteButtonEnabled =
-    satisfaction !== null && reuseIntention !== null
+  // 다음 버튼 활성화 조건: 만족도 선택 필수
+  const isCompleteButtonEnabled = satisfaction !== null
 
   useEffect(() => {
     // TODO: aborted 상태에 따라 UI를 다르게 표시하거나 처리
@@ -47,7 +43,7 @@ export default function SummaryContent() {
   }, [isAborted])
 
   const handleComplete = async () => {
-    if (!satisfaction || reuseIntention === null) {
+    if (satisfaction === null) {
       setSubmitted(true)
       return
     }
@@ -68,7 +64,6 @@ export default function SummaryContent() {
         selected_steps: selectedSteps.length > 0 ? selectedSteps : undefined,
         voice_guide_enabled: voiceGuideEnabled,
         satisfaction: satisfaction ?? undefined,
-        reuse_intention: reuseIntention ?? undefined,
         status: isAborted ? ('aborted' as const) : ('completed' as const),
         completed_at: new Date().toISOString(),
       }
@@ -91,7 +86,6 @@ export default function SummaryContent() {
   }
 
   const shouldShowSatisfactionError = submitted && satisfaction === null
-  const shouldShowReuseError = submitted && reuseIntention === null
 
   return (
     <AppLayout>
@@ -140,25 +134,6 @@ export default function SummaryContent() {
               {shouldShowSatisfactionError && (
                 <p className="text-center text-sm text-red-600 mt-4">
                   만족도를 선택해주세요
-                </p>
-              )}
-            </div>
-          </SectionBlock>
-
-          {/* 재사용 의향 선택 */}
-          <SectionBlock>
-            <SectionHeader
-              title="다시 사용하시겠어요?"
-              description="재사용 의향을 선택해주세요"
-            />
-            <div className="pt-4">
-              <ReuseIntentionSelector
-                value={reuseIntention}
-                onChange={setReuseIntention}
-              />
-              {shouldShowReuseError && (
-                <p className="text-center text-sm text-red-600 mt-4">
-                  재사용 의향을 선택해주세요
                 </p>
               )}
             </div>
