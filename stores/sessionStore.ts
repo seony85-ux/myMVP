@@ -33,7 +33,7 @@ interface SessionState {
 const initialState = {
   emotionLevel: null,
   bgmId: null,
-  routineMode: 'basic' as const,
+  routineMode: 'detailed' as const,
   selectedSteps: [],
   voiceGuideEnabled: true,
   beforeEmotion: null,

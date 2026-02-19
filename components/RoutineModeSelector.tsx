@@ -13,23 +13,6 @@ export default function RoutineModeSelector({
     <div className="w-full">
       {/* 세그먼트 컨트롤 */}
       <div className="flex items-center justify-center gap-3 mb-4">
-        {/* 기본 버튼 */}
-        <button
-          onClick={() => onChange('basic')}
-          className={`
-            h-14 px-6 sm:px-8 rounded-lg border-2 font-semibold transition-all duration-200
-            min-w-[140px] sm:min-w-[160px]
-            ${
-              value === 'basic'
-                ? 'bg-[#6E8578] text-white border-[#5a6f63] shadow-md'
-                : 'bg-white text-[#333333] border-[#CDCAC3] hover:border-[#b8b5ae] hover:text-[#1A202C]'
-            }
-            active:scale-95
-          `}
-          aria-label="기본 모드 선택"
-        >
-          기본
-        </button>
         {/* 단계별 가이드 버튼 */}
         <button
           onClick={() => onChange('detailed')}
@@ -46,6 +29,23 @@ export default function RoutineModeSelector({
           aria-label="단계별 가이드 모드 선택"
         >
           단계별 가이드
+        </button>
+        {/* 기본 버튼 */}
+        <button
+          onClick={() => onChange('basic')}
+          className={`
+            h-14 px-6 sm:px-8 rounded-lg border-2 font-semibold transition-all duration-200
+            min-w-[140px] sm:min-w-[160px]
+            ${
+              value === 'basic'
+                ? 'bg-[#6E8578] text-white border-[#5a6f63] shadow-md'
+                : 'bg-white text-[#333333] border-[#CDCAC3] hover:border-[#b8b5ae] hover:text-[#1A202C]'
+            }
+            active:scale-95
+          `}
+          aria-label="자율 모드 선택"
+        >
+          자율모드
         </button>
       </div>
 
