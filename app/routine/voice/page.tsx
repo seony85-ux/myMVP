@@ -20,7 +20,7 @@ export default function VoiceGuidePage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-[100svh]">
+      <div className="flex flex-col min-h-[100svh] pt-12 sm:pt-16">
         {/* 상단 절반: 음성 가이드 토글 */}
         <div className="flex-1 flex flex-col items-center justify-center px-6 min-h-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight font-heading text-center mb-10 sm:mb-12">
